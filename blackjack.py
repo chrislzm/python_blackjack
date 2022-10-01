@@ -4,10 +4,9 @@ By Chris Leung
 '''
 import random
 
-suits = ('Hearts', 'Diamonds', 'Spades', 'Clubs')
-ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace')
-values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8, 
-            'Nine':9, 'Ten':10, 'Jack':11, 'Queen':12, 'King':13, 'Ace':14}
+suits = ('♥', '♦', '♠', '♣')
+ranks = ('2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A')
+values = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':10, 'Q':10, 'K':10, 'A':11}
 
 def play_again():
     choice = ''
@@ -15,20 +14,16 @@ def play_again():
         choice = input("Would you like to play again? (Y/N): ").capitalize()
     return choice == 'Y'
 
-def get_num_players():
-    choice = ''
-    while not choice.isdigit():
-        choice = input("How many players? ")
-    return int(choice)
+def get_positive_integer_input(prompt):
+    while True:
+        choice = input(prompt)
+        if choice.isdigit() and int(choice) > 0:
+            return int(choice)
 
 def get_player_details(player_number):
     name = input(f"Player {player_number}, enter your name: ")
-    money = 0
-    while True:
-        choice = input(f"{name}, enter your starting money: ")
-        if choice.isdigit() and int(choice) > 0:
-            money = int(choice)
-            return (name,money)
+    money = get_positive_integer_input(f"{name}, enter your starting money: ")
+    return (name,money)
 
 def has_money_to_play(players):
     for player in players:
@@ -37,10 +32,26 @@ def has_money_to_play(players):
     return False
 
 class Card:
-    pass
+    def __init__(self,suit,rank):
+        self.suit = suit
+        self.rank = rank
+
+    def __str__(self):
+        return self.rank + self.suit
 
 class Deck:
-    pass
+    def __init__(self,num_decks):
+        self.deck = []
+        for i in range(0,num_decks):
+            for suit in suits:
+                for rank in ranks:
+                    self.deck.append(Card(suit,rank))
+
+    def __str__(self):
+        deck_string = ''
+        for card in self.deck:
+            deck_string += card.__str__() + '\n'
+        return deck_string
 
 class Hand:
     # List of cards
@@ -59,14 +70,16 @@ while True:
     dealer = Player('Dealer', 0)
     players = []
 
-    # Ask for the number of players
-    num_players = get_num_players()
+    # Player(s) setup
+    num_players = get_positive_integer_input("Enter number of players: ")
     for player_num in range(1,num_players+1):
         (name, money) = get_player_details(player_num)
         players.append(Player(name,money))
 
-    # Ask for the starting amount of money
-    # Ask for the number of decks
+    # Deck(s) setup
+    num_decks = get_positive_integer_input("Enter number of decks: ")
+    deck = Deck(num_decks)
+    print(deck)
 
     game_on = True
 
