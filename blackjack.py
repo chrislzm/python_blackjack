@@ -4,31 +4,36 @@ By Chris Leung
 '''
 import random
 
-suits = ('♥', '♦', '♠', '♣')
-ranks = ('2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A')
-values = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8,
-          '9':9, '10':10, 'J':10, 'Q':10, 'K':10, 'A':11}
+DEALER_MUST_HIT_BELOW = 17
+SUITS = ('♥', '♦', '♠', '♣')
+RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A')
+VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
+          '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
+
 
 class Card:
     ''' Represents a single card in a standard deck of cards '''
-    def __init__(self,suit,rank):
+
+    def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
-        self.value = values[rank]
+        self.value = VALUES[rank]
 
     def face(self):
         ''' Returns the card face as a string '''
         return self.rank + self.suit
 
+
 class Deck:
     ''' Represents one or more standard 52-card decks '''
-    def __init__(self,num_decks):
+
+    def __init__(self, num_decks):
         self.deck = []
         self.discard = []
-        for _ in range(0,num_decks):
-            for suit in suits:
-                for rank in ranks:
-                    self.deck.append(Card(suit,rank))
+        for _ in range(0, num_decks):
+            for suit in SUITS:
+                for rank in RANKS:
+                    self.deck.append(Card(suit, rank))
 
     def __str__(self):
         deck_string = f"{len(self.deck)} cards in total.\n"
@@ -46,15 +51,18 @@ class Deck:
         If deck is empty, add back cards from discard pile, shuffle, then deal.
         '''
         if len(self.deck) == 0:
-            print("Deck is out of cards. Adding back the discard pile and shuffling.")
+            print("Deck is out of cards. Adding back the discard pile and "
+                  + "shuffling.")
             self.deck = self.discard
             self.discard = []
             random.shuffle(self.deck)
         return self.deck.pop()
 
+
 class Player:
     ''' Represents a human player in a blackjack game '''
-    def __init__(self,name,money):
+
+    def __init__(self, name, money):
         self.name = name
         self.money = money
         self.bet = 0
@@ -70,7 +78,8 @@ class Player:
         for card in self.hand:
             output_string += ' ' + card.face()
         hand_value = self.max_hand_value()
-        output_string += ", Total: " + str(hand_value) if hand_value <= 21 else ' **BUST**'
+        hand_value_str = str(hand_value) if hand_value <= 21 else ' **BUST**'
+        output_string += ", Total: " + hand_value_str
         return output_string
 
     def max_hand_value(self):
@@ -83,10 +92,11 @@ class Player:
             else:
                 hand_value += card.value
         hand_value += num_aces
-        for _ in range(0,num_aces):
+        for _ in range(0, num_aces):
             if hand_value + 10 <= 21:
                 hand_value += 10
         return hand_value
+
 
 def get_valid_string_input(prompt, valid_strings):
     '''
@@ -95,30 +105,41 @@ def get_valid_string_input(prompt, valid_strings):
     '''
     lowercase_valid_strings = []
     for string in valid_strings:
-        lowercase_valid_strings.append(string.lower())        
+        lowercase_valid_strings.append(string.lower())
     choice = ''
     while choice not in lowercase_valid_strings:
         choice = input(prompt).lower()
     return choice
 
-def get_positive_integer_input(prompt, maximum = 0):
+
+def get_positive_integer_input(prompt, maximum=0):
     '''
-    Gets input from user: Loops until a positive non-zero integer is input by the user.
-    Optional maximum must be positive, will continue to ask user for input if beyond maximum.
+    Gets input from user: Loops until a positive non-zero integer is input.
+                          Optional maximum must be positive. Continues to ask
+                          user for input if input is beyond maximum.
     Returns: Positive non-zero integer
     '''
     while True:
         choice = input(prompt)
         if choice.isdigit():
             value = int(choice)
-            if value > 0 and (maximum == 0 or (maximum > 0 and value <= maximum)):
+            if value > 0 and (maximum == 0
+                              or (maximum > 0 and value <= maximum)):
                 return value
 
-def get_player_move(player_name, allow_double_down):
-    if allow_double_down:
-        return get_valid_string_input(f"{player_name} - Hit, stay or double down? (H/S/D): ",('h','s','d'))
-    else:
-        return get_valid_string_input(f"{player_name} - Hit or stay? (H/S): ",('h','s'))
+
+def get_player_move(player_name, allow_dd):
+    '''
+    Get input from user: Hit, stay, or double down (if allow_dd == true)
+    Returns: 'h', 's', or 'd'
+    '''
+    if allow_dd:
+        return get_valid_string_input(
+            f"{player_name} - Hit, stay or double down? (H/S/D): ",
+            ('h', 's', 'd'))
+    return get_valid_string_input(
+        f"{player_name} - Hit or stay? (H/S): ", ('h', 's'))
+
 
 def get_player_details(player_number):
     '''
@@ -127,15 +148,18 @@ def get_player_details(player_number):
     '''
     name = input(f"Player {player_number}, enter your name: ")
     money = get_positive_integer_input(f"{name}, enter your starting money: ")
-    return (name,money)
+    return (name, money)
+
 
 def play_again():
     '''
     Gets input from user: Whether player wants to continue playing
     Returns: True to continue playing, False otherwise
     '''
-    choice = get_valid_string_input("Would you like to play again? (Y/N): ",('y','n'))
+    choice = get_valid_string_input(
+        "Would you like to play again? (Y/N): ", ('y', 'n'))
     return choice == 'y'
+
 
 def has_money_to_play(players):
     '''
@@ -146,20 +170,23 @@ def has_money_to_play(players):
             return True
     return False
 
-def display_table(dealer,players):
+
+def display_table(dealer, players):
     '''
     Prints the entire table, with all hands
     '''
     dealer_face_up_card = dealer.hand[1]
-    print(f"Dealer: " + dealer_face_up_card.face())
+    print(f"Dealer: {dealer_face_up_card.face()}")
     for player in players:
         print(player.name_and_hand())
+
 
 def display_line():
     '''
     Prints a dashed line
     '''
-    print("----------------------------------------------------------------------")
+    print("------------------------------------------------------------------")
+
 
 def get_move():
     '''
@@ -167,12 +194,13 @@ def get_move():
     H = hit, S = stay, Q = quit
     '''
 
+
 def main():
     '''
     The main game logic.
     '''
 
-    print("\n" * 100) # Clear screen
+    print("\n" * 100)  # Clear screen
 
     while True:
         # Game setup
@@ -181,18 +209,16 @@ def main():
 
         # Player(s) setup
         num_players = get_positive_integer_input("Enter number of players: ")
-        for player_num in range(1,num_players+1):
+        for player_num in range(1, num_players + 1):
             (name, money) = get_player_details(player_num)
-            all_players.append(Player(name,money))
+            all_players.append(Player(name, money))
 
         # Deck(s) setup
         num_decks = get_positive_integer_input("Enter number of decks: ")
         deck = Deck(num_decks)
         deck.shuffle()
 
-        dealer_hit_value = 16
-
-        print(f"Rules: Dealer must hit on or below {dealer_hit_value}.")
+        print(f"Rules: Dealer must hit below {DEALER_MUST_HIT_BELOW}.")
 
         # Start the main game loop
         game_on = True
@@ -208,14 +234,15 @@ def main():
                 print(player.name_and_money())
                 if player.money != 0:
                     active_players.append(player)
-                    player.bet = get_positive_integer_input(f"{player.name}, enter your bet: ",player.money)
+                    player.bet = get_positive_integer_input(
+                        f"{player.name}, enter your bet: ", player.money)
                     player.money -= player.bet
 
             if len(active_players) == 0:
                 break
 
             # Deal
-            for _ in range(0,2):
+            for _ in range(0, 2):
                 for player in active_players:
                     player.hand.append(deck.deal_card())
                 dealer.hand.append(deck.deal_card())
@@ -224,15 +251,17 @@ def main():
 
             # Human player turns
             for player in active_players:
-                display_table(dealer,active_players)
+                display_table(dealer, active_players)
                 turn = 0
                 while player.max_hand_value() < 21:
-                    move = get_player_move(player.name, player.money >= player.bet and turn == 0)
+                    move = get_player_move(
+                        player.name, player.money >= player.bet and turn == 0)
                     double_down = False
                     if move == 's':
                         break
                     if move == 'd':
-                        print(f"Double down. Increasing bet to ${2*player.bet}")
+                        print(
+                            f"Double down. Increasing bet to ${2*player.bet}")
                         player.money -= player.bet
                         player.bet *= 2
                         double_down = True
@@ -245,33 +274,39 @@ def main():
 
             # Dealer turn
             print(dealer.name_and_hand())
-            while dealer.max_hand_value() <= dealer_hit_value:
+            while dealer.max_hand_value() < DEALER_MUST_HIT_BELOW:
                 print("Dealer hits")
                 dealer.hand.append(deck.deal_card())
                 print(dealer.name_and_hand())
 
-            # Dealer busts, 
+            # Dealer busts,
             if dealer.max_hand_value() > 21:
                 # Pay 2x to everyone who didn't bust
                 for player in active_players:
                     if player.max_hand_value() <= 21:
-                        player.money += 2*player.bet
-                        print(f"{player.name} wins ${player.bet}! They now have ${player.money}")
+                        player.money += 2 * player.bet
+                        print(f"{player.name} wins ${player.bet}! "
+                              + f"They now have ${player.money}")
                     else:
-                        print(f"{player.name} lost ${player.bet}. They now have ${player.money}")
+                        print(f"{player.name} lost ${player.bet}. "
+                              + f"They now have ${player.money}")
                     player.bet = 0
-                
+
             else:
                 # Otherwise, check each player's hand against dealers
                 for player in active_players:
-                    if player.max_hand_value() > 21 or player.max_hand_value() < dealer.max_hand_value():
-                        print(f"{player.name} lost ${player.bet}. They now have ${player.money}")
+                    if any(player.max_hand_value() > 21,
+                           player.max_hand_value() < dealer.max_hand_value()):
+                        print(f"{player.name} lost ${player.bet}. "
+                              + f"They now have ${player.money}")
                     elif player.max_hand_value() == dealer.max_hand_value():
                         player.money += player.bet
-                        print(f"{player.name} draw, keeps ${player.bet}. They now have ${player.money}")
+                        print(f"{player.name} draw, keeps ${player.bet}. "
+                              + f"They now have ${player.money}")
                     else:
-                        player.money += 2* player.bet
-                        print(f"{player.name} wins ${player.bet}! They now have ${player.money}")
+                        player.money += 2 * player.bet
+                        print(f"{player.name} wins ${player.bet}! "
+                              + f"They now have ${player.money}")
                     player.bet = 0
 
             # Move cards to the discard pile
@@ -284,6 +319,7 @@ def main():
         # Ask to continue playing or not
         if not play_again():
             break
+
 
 if __name__ == '__main__':
     main()
