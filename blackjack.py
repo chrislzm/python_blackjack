@@ -295,18 +295,21 @@ def main():
             else:
                 # Otherwise, check each player's hand against dealers
                 for player in active_players:
-                    if any(player.max_hand_value() > 21,
-                           player.max_hand_value() < dealer.max_hand_value()):
+                    # Player loses (busts or less than dealer)
+                    if (player.max_hand_value() > 21
+                        or player.max_hand_value() < dealer.max_hand_value()):
                         print(f"{player.name} lost ${player.bet}. "
-                              + f"They now have ${player.money}")
+                              + f"They now have ${player.money}.")
+                    # Player pushes (same value as dealer)
                     elif player.max_hand_value() == dealer.max_hand_value():
                         player.money += player.bet
-                        print(f"{player.name} draw, keeps ${player.bet}. "
-                              + f"They now have ${player.money}")
+                        print(f"{player.name} pushes, keeps ${player.bet}. "
+                              + f"They now have ${player.money}.")
+                    # Player wins!
                     else:
                         player.money += 2 * player.bet
                         print(f"{player.name} wins ${player.bet}! "
-                              + f"They now have ${player.money}")
+                              + f"They now have ${player.money}.")
                     player.bet = 0
 
             # Move cards to the discard pile
