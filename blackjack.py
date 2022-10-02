@@ -114,8 +114,11 @@ def get_positive_integer_input(prompt, maximum = 0):
             if value > 0 and (maximum == 0 or (maximum > 0 and value <= maximum)):
                 return value
 
-def get_player_move(player_name):
-    return get_valid_string_input(f"{player_name} - Hit or stay? (H/S): ",('h','s','q'))
+def get_player_move(player_name, allow_double_down):
+    if allow_double_down:
+        return get_valid_string_input(f"{player_name} - Hit, stay or double down? (H/S/D): ",('h','s','d'))
+    else:
+        return get_valid_string_input(f"{player_name} - Hit or stay? (H/S): ",('h','s'))
 
 def get_player_details(player_number):
     '''
@@ -222,17 +225,24 @@ def main():
             # Human player turns
             for player in active_players:
                 display_table(dealer,active_players)
+                turn = 0
                 while player.max_hand_value() < 21:
-                    move = get_player_move(player.name)
-                    if move == 'q':
-                        game_on = False
-                        break
+                    move = get_player_move(player.name, player.money >= player.bet and turn == 0)
+                    double_down = False
                     if move == 's':
                         break
-                    # Player has chosen to hit
+                    if move == 'd':
+                        print(f"Double down. Increasing bet to ${2*player.bet}")
+                        player.money -= player.bet
+                        player.bet *= 2
+                        double_down = True
+                    # Player hits
                     player.hand.append(deck.deal_card())
                     print(player.name_and_hand())
-            
+                    if double_down:
+                        break
+                    turn += 1
+
             # Dealer turn
             print(dealer.name_and_hand())
             while dealer.max_hand_value() <= dealer_hit_value:
