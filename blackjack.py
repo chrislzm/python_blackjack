@@ -218,7 +218,8 @@ def main():
         deck = Deck(num_decks)
         deck.shuffle()
 
-        print(f"Rules: Dealer must hit below {DEALER_MUST_HIT_BELOW}.")
+        print(f"Rules: Soft {DEALER_MUST_HIT_BELOW}. (Dealer must hit on or "
+              + f"below {DEALER_MUST_HIT_BELOW-1}.)")
 
         # Start the main game loop
         game_on = True
