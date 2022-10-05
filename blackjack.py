@@ -151,6 +151,16 @@ def get_player_details(player_number):
     return (name, money)
 
 
+def hit(player, deck):
+    '''
+    Deals a card from the deck to a player's hand. Prints the action and the
+    result.
+    '''
+    print(f"{player.name} hits.")
+    player.hand.append(deck.deal_card())
+    print(player.name_and_hand())
+
+
 def play_again():
     '''
     Gets input from user: Whether player wants to continue playing
@@ -255,20 +265,26 @@ def main():
                 display_table(dealer, active_players)
                 turn = 0
                 while player.max_hand_value() < 21:
+
+                    double_down = False
+
                     move = get_player_move(
                         player.name, player.money >= player.bet and turn == 0)
-                    double_down = False
+
+                    # Player stands
                     if move == 's':
                         break
+
+                    # Player double downs
                     if move == 'd':
                         print(
                             f"Double down. Increasing bet to ${2*player.bet}")
                         player.money -= player.bet
                         player.bet *= 2
                         double_down = True
+
                     # Player hits
-                    player.hand.append(deck.deal_card())
-                    print(player.name_and_hand())
+                    hit(player, deck)
                     if double_down:
                         break
                     turn += 1
@@ -276,9 +292,7 @@ def main():
             # Dealer turn
             print(dealer.name_and_hand())
             while dealer.max_hand_value() < DEALER_MUST_HIT_BELOW:
-                print("Dealer hits")
-                dealer.hand.append(deck.deal_card())
-                print(dealer.name_and_hand())
+                hit(dealer, deck)
 
             # Dealer busts,
             if dealer.max_hand_value() > 21:
