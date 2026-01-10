@@ -28,6 +28,24 @@ class TestBlackjack2026(unittest.TestCase):
         self.assertEqual(hand.value(), 23)
         self.assertEqual(hand.bust(), True)
 
+    def test_hand_value_one_ace(self):
+        hand = Hand()
+        hand.cards.append(Card('A', 'Spades'))
+        hand.cards.append(Card('10', 'Hearts'))
+
+        self.assertEqual(hand.value(), 21)
+        self.assertEqual(hand.bust(), False)
+
+    def test_hand_value_multiple_aces(self):
+        hand = Hand()
+        hand.cards.append(Card('A', 'Spades'))
+        hand.cards.append(Card('A', 'Diamonds'))
+        hand.cards.append(Card('A', 'Clubs'))
+        hand.cards.append(Card('5', 'Hearts'))
+
+        self.assertEqual(hand.value(), 18)
+        self.assertEqual(hand.bust(), False)
+
 
 if __name__ == '__main__':
     unittest.main()
