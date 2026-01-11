@@ -59,3 +59,9 @@ class Hand():
 
     def bust(self):
         return self.value() > 21
+
+    def __str__(self):
+        string_output = ""
+        for card in self.cards:
+            string_output += f"{card} "
+        return string_output
