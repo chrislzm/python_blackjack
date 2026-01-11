@@ -137,6 +137,26 @@ def get_player_name(player_num) -> str:
             return player_name
 
 
+def get_player_bet(player, minimum_bet) -> None:
+    while True:
+        try:
+            bet = int(input(f"Player {player.number} ({player.name}) - "
+                            f"You have ${player.bank}. You bet: "))
+        except ValueError:
+            print("Sorry, that's not a valid input.")
+        else:
+            if bet >= minimum_bet:
+                if bet > player.bank:
+                    print("Sorry, that's more than you have in your bank.")
+                else:
+                    player.bet = bet
+                    player.bank -= bet
+                    print(f"{player.name} bets ${bet}")
+                    return
+            else:
+                print(f"Bet must be at least ${minimum_bet}.")
+
+
 def main():
     clear_screen()
     print("Welcome to Blackjack!")
@@ -156,7 +176,14 @@ def main():
           f"Dealer must hit on soft 17.\n"
           f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
-          "remain in the shoe.")
+          "remain in the shoe.\n"
+          f"Minimum bet is ${MINIMUM_BET}.")
+
+    game_on = True
+
+    while game_on:
+        for player in players:
+            get_player_bet(player, MINIMUM_BET)
 
 
 if __name__ == '__main__':

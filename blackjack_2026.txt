@@ -81,7 +81,7 @@ Game Logic
             * For each player
                 * Move cards from hand to discard pile
         * For each player
-            * If money == 0, remove them from the game
+            * If money < the minimum bet, remove them from the game
         * Option to end the game
             * Print stats (bank)
         * If cards left in shoe < cut card, then add discard pile and reshuffle
