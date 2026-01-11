@@ -4,15 +4,17 @@ Author: Chris Leung
 January 9, 2026
 '''
 
+import random
+
 CARD_SUITS = ('Hearts', 'Clubs', 'Diamonds', 'Spades')
 CARD_SUIT_SYMBOLS = {'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦',
                      'Spades': '♠'}
-CARD_RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'J', 'Q', 'K', 'A')
+CARD_RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A')
 CARD_RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
                     '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 1}
 PLAYER_BANK_START = 500
 MINIMUM_BET = 15
-SHOE_DECKS = 6
+NUM_SHOE_DECKS = 6
 SHOE_CUT_CARD_POSITION = 52  # Reshuffle when one deck remains in the shoe
 
 
@@ -65,3 +67,28 @@ class Hand():
         for card in self.cards:
             string_output += f"{card} "
         return string_output
+
+
+class Dealer():
+
+    def __init__(self, num_shoe_decks, shoe_cut_card_position):
+        self.hand = Hand()
+        self.shoe = []
+        self.discard = []
+        self.shoe_cut_card_position = shoe_cut_card_position
+        self.drew_cut_card = False
+
+        # Fill shoe and shuffle
+        for _ in range(num_shoe_decks):
+            deck = Deck()
+            self.shoe.extend(deck.cards)
+        random.shuffle(self.shoe)
+
+    def deal_one(self):
+        if len(self.shoe) <= self.shoe_cut_card_position:
+            self.drew_cut_card = True
+        if len(self.shoe) == 0:
+            # Special case: Put discard into shoe, shuffle, then deal
+            self.shoe.extend(self.discard)
+            random.shuffle(self.shoe)
+        return self.shoe.pop()
