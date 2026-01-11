@@ -214,13 +214,13 @@ def main():
           f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
           "remain in the shoe.\n"
-          f"Minimum bet is ${MINIMUM_BET}."
+          f"Minimum bet is ${MINIMUM_BET}.\n"
           f"Blackjack pays 3:2.")
 
     game_on = True
 
     while game_on:
-        print_header("Dealer: Place your bets")
+        print_header("Place your bets")
         for player in players:
             get_player_bet(player, MINIMUM_BET)
 
@@ -275,24 +275,57 @@ def main():
 
             print_header("Dealer")
             dealer.hand.cards[0].face_up = True
-            # Todo: Handle hit and soft/hard 17 logic!
-            pass
+            print(dealer.hand)
+            while dealer.hand.value() <= 17 and not dealer.hand.is_hard_17():
+                print("Dealer hits.")
+                dealer.hand.cards.append(dealer.deal_one(True))
+                print(dealer.hand)
+            if dealer.hand.bust():
+                print("Dealer busted!")
+            else:
+                print("Dealer stays.")
 
-        # Resolve bets
+        print_header("Resolving bets")
         for player in players:
-            # If player busted, continue
-            # Elif dealer isbusted or player hand > dealer hand, pay 2:1
-            # Elif dealer hand == player hand, push (bet goes back to their bank)
-            # Else dealer hand > player hand, lose (bet goes to 0)
-            pass
+            if player.bet == 0:
+                continue
+            if dealer.hand.bust() or player.hand.value() > dealer.hand.value():
+                player.bank += player.bet * 2
+                print(f"{player} hand {player.hand}wins ${player.bet} "
+                      f"and now has ${player.bank}")
+                player.bet = 0
+            elif dealer.hand.value() == player.hand.value():
+                player.bank += player.bet
+                print(f"{player} hand {player.hand}is a push, ${player.bet} "
+                      f"is returned and they now have ${player.bank}.")
+                player.bet = 0
+            elif dealer.hand.value() > player.hand.value():
+                print(f"{player} hand {player.hand}loses to dealer's hand and "
+                      f"they lose their ${player.bet} bet. "
+                      f"They now have ${player.bank}.")
+                player.bet = 0
 
         # Round end - Cleanup
-        # Dealer
-            # Move cards from hand to discard pile
-        # For each player
-            # Move cards from hand to discard pile
-        # For each player
-            # If money < the minimum bet, remove them from the game
+        while len(dealer.hand.cards) != 0:
+            dealer.discard.append(dealer.hand.cards.pop())
+        bankrupt_players = []
+        for player in players:
+            while len(player.hand.cards) != 0:
+                dealer.discard.append(player.hand.cards.pop())
+            if player.bank < MINIMUM_BET:
+                bankrupt_players.append(player.number)
+                print(f"{player} only has ${player.bank} which is less than "
+                      f"the minimum bet of ${MINIMUM_BET}. They are being "
+                      f"removed from the table.")
+        while len(bankrupt_players) != 0:
+            # Remove players moving backwards, with 0-based index
+            players.pop(bankrupt_players[-1]-1)
+            bankrupt_players.pop(-1)
+
+        if len(players) == 0:
+            print_header("Game Over")
+            print("There are no more eligible players. Have a nice day!")
+            game_on = False
         # Option to end the game
             # Print stats (bank)
         # If cards left in shoe < cut card, then add discard pile and reshuffle
