@@ -16,6 +16,7 @@ PLAYER_STARTING_BANK = 500
 MINIMUM_BET = 15
 NUM_SHOE_DECKS = 6
 SHOE_CUT_CARD_POSITION = 52  # Reshuffle when one deck remains in the shoe
+SCREEN_WIDTH = 80
 
 
 class Card():
@@ -61,6 +62,9 @@ class Hand():
 
     def bust(self):
         return self.value() > 21
+
+    def is_blackjack(self):
+        return self.value() == 21
 
     def __str__(self):
         string_output = ""
@@ -112,6 +116,9 @@ class Player():
         self.bet = 0
         self.hand = Hand()
 
+    def __str__(self):
+        return f"Player {self.number} ({self.name})"
+
 
 def clear_screen() -> None:
     """
@@ -142,8 +149,7 @@ def get_player_name(player_num) -> str:
 def get_player_bet(player, minimum_bet) -> None:
     while True:
         try:
-            bet = int(input(f"Player {player.number} ({player.name}) - "
-                            f"You have ${player.bank}. You bet: "))
+            bet = int(input(f"{player} has ${player.bank}. Your bet: "))
         except ValueError:
             print("Sorry, that's not a valid input.")
         else:
@@ -159,9 +165,32 @@ def get_player_bet(player, minimum_bet) -> None:
                 print(f"Bet must be at least ${minimum_bet}.")
 
 
+def hit(player) -> bool:
+    while True:
+        response = input(f"Hit or Stay? (h/s): ")
+        if response.lower() == 'h':
+            return True
+        elif response.lower() == 's':
+            return False
+        else:
+            print("Please enter 'h' or 's'.")
+
+
+def print_header(message) -> None:
+    padding_amount = int((SCREEN_WIDTH - len(message)) / 2) - 2
+    for _ in range(padding_amount):
+        print("-", end="")
+    print(" ", end="")
+    print(message, end="")
+    print(" ", end="")
+    for _ in range(padding_amount):
+        print("-", end="")
+    print("")
+
+
 def main():
     clear_screen()
-    print("Welcome to Blackjack!")
+    print_header("Welcome to Blackjack!")
     players = []
     num_players = get_num_players()
 
@@ -173,20 +202,23 @@ def main():
     dealer = Dealer(NUM_SHOE_DECKS, SHOE_CUT_CARD_POSITION)
 
     # Print rules
-    print("-------------------------- HOUSE RULES --------------------------\n"
-          f"All players start with ${PLAYER_STARTING_BANK}.\n"
+    print_header("HOUSE RULES")
+    print(f"All players start with ${PLAYER_STARTING_BANK}.\n"
           f"Dealer must hit on soft 17.\n"
           f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
           "remain in the shoe.\n"
-          f"Minimum bet is ${MINIMUM_BET}.")
+          f"Minimum bet is ${MINIMUM_BET}."
+          f"Blackjack pays 3:2.")
 
     game_on = True
 
     while game_on:
+        print_header("Dealer: Place your bets")
         for player in players:
             get_player_bet(player, MINIMUM_BET)
 
+        print_header("Dealer")
         print("Dealing cards...")
 
         # Deal first card
@@ -202,22 +234,33 @@ def main():
         # Announce cards
         print(f"Dealer shows: {dealer.hand}")
         for player in players:
-            print(f"Player {player.number} ({player.name}) "
-                  f"shows: {player.hand}")
+            print(f"{player} shows: {player.hand}")
 
-        if dealer.hand.value() == 21:
+        if dealer.hand.is_blackjack():
             dealer.hand.cards[0].face_up = True
             print(f"Dealer Blackjack! Dealer shows: {dealer.hand}")
         else:
-            # For each player
-                # If blackjack: Pay 3:2 and continue to next player
-                # Else: While stay = false loop
-                    # Input: Hit or stay?
-                    # If hit
-                        # If bust
-                            # Announce, set bet to 0
-                        # Else
-                            # Announce total value 
+            for player in players:
+                print_header(f"{player}")
+                if player.hand.is_blackjack():
+                    print(f"Hand: {player.hand} - Blackjack! ")
+                    win_amount = player.bet * 1.5
+                    player.bank += win_amount + player.bet
+                    player.bet = 0
+                    print(f"You win ${win_amount} and now have "
+                          f"${player.bank}")
+                else:
+                    stay = False
+                    while (not stay and not player.hand.bust() and
+                           not player.hand.is_blackjack()):
+                        print(f"Your hand is {player.hand}")
+                        if hit(player):
+                            player.hand.cards.append(dealer.deal_one(True))
+                        else:
+                            stay = True
+                    if player.hand.bust():
+                        print(f"Bust! You lose your bet of ${player.bet}.")
+                        player.bet = 0
             # Dealer
                 # While Dealer hand not hard 17, hit
             pass
