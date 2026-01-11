@@ -92,3 +92,10 @@ class Dealer():
             self.shoe.extend(self.discard)
             random.shuffle(self.shoe)
         return self.shoe.pop()
+
+    def reshuffle_shoe_if_needed(self):
+        if self.drew_cut_card:
+            self.shoe.extend(self.discard)
+            self.discard.clear()
+            random.shuffle(self.shoe)
+            self.drew_cut_card = False

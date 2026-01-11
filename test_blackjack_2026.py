@@ -89,6 +89,15 @@ class TestBlackjack2026(unittest.TestCase):
         dealer.deal_one()
         self.assertEqual(len(dealer.shoe), 51)
 
+    def test_reshuffle_shoe_if_needed(self):
+        dealer = Dealer(1, 40)
+        for _ in range(30):
+            dealer.discard.append(dealer.deal_one())
+        self.assertTrue(dealer.drew_cut_card)
+        dealer.reshuffle_shoe_if_needed()
+        self.assertEqual(len(dealer.discard), 0)
+        self.assertEqual(len(dealer.shoe), 52)
+
 
 if __name__ == '__main__':
     unittest.main()
