@@ -63,7 +63,7 @@ class Hand():
                 self.soft = True
         return total_value
 
-    def bust(self):
+    def is_bust(self):
         return self.value() > 21
 
     def is_blackjack(self):
@@ -261,7 +261,7 @@ def main():
                         print(player.hand)
                         if hit(player):
                             player.hand.cards.append(dealer.deal_one(True))
-                            if player.hand.bust():
+                            if player.hand.is_bust():
                                 print(player.hand)
                                 print(f"Bust! You lose your bet of ${player.bet}.")
                                 player.bet = 0
@@ -280,7 +280,7 @@ def main():
                 print("Dealer hits.")
                 dealer.hand.cards.append(dealer.deal_one(True))
                 print(dealer.hand)
-            if dealer.hand.bust():
+            if dealer.hand.is_bust():
                 print("Dealer busted!")
             else:
                 print("Dealer stays.")
@@ -289,7 +289,7 @@ def main():
         for player in players:
             if player.bet == 0:
                 continue
-            if dealer.hand.bust() or player.hand.value() > dealer.hand.value():
+            if dealer.hand.is_bust() or player.hand.value() > dealer.hand.value():
                 player.bank += player.bet * 2
                 print(f"{player} hand {player.hand}wins ${player.bet} "
                       f"and now has ${player.bank}")
@@ -326,6 +326,7 @@ def main():
             print_header("Game Over")
             print("There are no more eligible players. Have a nice day!")
             game_on = False
+
         # Option to end the game
             # Print stats (bank)
         # If cards left in shoe < cut card, then add discard pile and reshuffle
