@@ -194,6 +194,17 @@ def print_header(message) -> None:
     print("")
 
 
+def play_again() -> bool:
+    while True:
+        response = input(f"Play another round? (y/n): ")
+        if response.lower() == 'y':
+            return True
+        elif response.lower() == 'n':
+            return False
+        else:
+            print("Please enter 'y' or 'n'.")
+
+
 def main():
     clear_screen()
     print_header("Welcome to Blackjack!")
@@ -289,7 +300,8 @@ def main():
         for player in players:
             if player.bet == 0:
                 continue
-            if dealer.hand.is_bust() or player.hand.value() > dealer.hand.value():
+            if (dealer.hand.is_bust() or
+                    player.hand.value() > dealer.hand.value()):
                 player.bank += player.bet * 2
                 print(f"{player} hand {player.hand}wins ${player.bet} "
                       f"and now has ${player.bank}")
@@ -323,13 +335,17 @@ def main():
             bankrupt_players.pop(-1)
 
         if len(players) == 0:
-            print_header("Game Over")
-            print("There are no more eligible players. Have a nice day!")
+            print("There are no more eligible players.")
             game_on = False
 
-        # Option to end the game
-            # Print stats (bank)
-        # If cards left in shoe < cut card, then add discard pile and reshuffle
+        if game_on:
+            if play_again():
+                dealer.reshuffle_shoe_if_needed()
+            else:
+                game_on = False
+
+    print_header("Game over")
+    print("Have a nice day! :)")
 
 
 if __name__ == '__main__':
