@@ -47,6 +47,7 @@ class Hand():
 
     def __init__(self):
         self.cards = []
+        self.soft = False
 
     def value(self):
         total_value = 0
@@ -55,9 +56,11 @@ class Hand():
             if card.rank == 'A':
                 num_aces += 1
             total_value += CARD_RANK_VALUES[card.rank]
+        self.soft = False
         for _ in range(num_aces):
             if total_value + 10 <= 21:
                 total_value += 10
+                self.soft = True
         return total_value
 
     def bust(self):
@@ -65,6 +68,9 @@ class Hand():
 
     def is_blackjack(self):
         return self.value() == 21
+
+    def is_hard_17(self):
+        return self.value() == 17 and not self.soft
 
     def __str__(self):
         string_output = ""
@@ -251,18 +257,25 @@ def main():
                           f"${player.bank}")
                 else:
                     stay = False
-                    while (not stay and not player.hand.bust() and
-                           not player.hand.is_blackjack()):
-                        print(f"Your hand is {player.hand}")
+                    while not stay:
+                        print(player.hand)
                         if hit(player):
                             player.hand.cards.append(dealer.deal_one(True))
+                            if player.hand.bust():
+                                print(player.hand)
+                                print(f"Bust! You lose your bet of ${player.bet}.")
+                                player.bet = 0
+                                stay = True
+                            if player.hand.is_blackjack():
+                                print(player.hand)
+                                print(f"Twenty one!")
+                                stay = True
                         else:
                             stay = True
-                    if player.hand.bust():
-                        print(f"Bust! You lose your bet of ${player.bet}.")
-                        player.bet = 0
-            # Dealer
-                # While Dealer hand not hard 17, hit
+
+            print_header("Dealer")
+            dealer.hand.cards[0].face_up = True
+            # Todo: Handle hit and soft/hard 17 logic!
             pass
 
         # Resolve bets
