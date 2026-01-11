@@ -84,14 +84,16 @@ class Dealer():
             self.shoe.extend(deck.cards)
         random.shuffle(self.shoe)
 
-    def deal_one(self):
+    def deal_one(self, face_up):
         if len(self.shoe) <= self.shoe_cut_card_position:
             self.drew_cut_card = True
         if len(self.shoe) == 0:
             # Special case: Put discard into shoe, shuffle, then deal
             self.shoe.extend(self.discard)
             random.shuffle(self.shoe)
-        return self.shoe.pop()
+        dealt_card = self.shoe.pop()
+        dealt_card.face_up = face_up
+        return dealt_card
 
     def reshuffle_shoe_if_needed(self):
         if self.drew_cut_card:
@@ -184,6 +186,60 @@ def main():
     while game_on:
         for player in players:
             get_player_bet(player, MINIMUM_BET)
+
+        print("Dealing cards...")
+
+        # Deal first card
+        dealer.hand.cards.append(dealer.deal_one(False))
+        for player in players:
+            player.hand.cards.append(dealer.deal_one(True))
+
+        # Deal second card
+        dealer.hand.cards.append(dealer.deal_one(True))
+        for player in players:
+            player.hand.cards.append(dealer.deal_one(True))
+
+        # Announce cards
+        print(f"Dealer shows: {dealer.hand}")
+        for player in players:
+            print(f"Player {player.number} ({player.name}) "
+                  f"shows: {player.hand}")
+
+        if dealer.hand.value() == 21:
+            dealer.hand.cards[0].face_up = True
+            print(f"Dealer Blackjack! Dealer shows: {dealer.hand}")
+        else:
+            # For each player
+                # If blackjack: Pay 3:2 and continue to next player
+                # Else: While stay = false loop
+                    # Input: Hit or stay?
+                    # If hit
+                        # If bust
+                            # Announce, set bet to 0
+                        # Else
+                            # Announce total value 
+            # Dealer
+                # While Dealer hand not hard 17, hit
+            pass
+
+        # Resolve bets
+        for player in players:
+            # If player busted, continue
+            # Elif dealer isbusted or player hand > dealer hand, pay 2:1
+            # Elif dealer hand == player hand, push (bet goes back to their bank)
+            # Else dealer hand > player hand, lose (bet goes to 0)
+            pass
+
+        # Round end - Cleanup
+        # Dealer
+            # Move cards from hand to discard pile
+        # For each player
+            # Move cards from hand to discard pile
+        # For each player
+            # If money < the minimum bet, remove them from the game
+        # Option to end the game
+            # Print stats (bank)
+        # If cards left in shoe < cut card, then add discard pile and reshuffle
 
 
 if __name__ == '__main__':
