@@ -145,7 +145,7 @@ def get_num_players() -> int:
             print("Please enter a number greater than 0.")
 
 
-def get_players(num_players: int) -> list:
+def get_players(num_players: int) -> list[Player]:
     players = []
     for player_num in range(1, num_players+1):
         while True:
@@ -158,7 +158,7 @@ def get_players(num_players: int) -> list:
     return players
 
 
-def get_player_bet(player, minimum_bet) -> None:
+def get_player_bet(player: Player, minimum_bet: int) -> None:
     while True:
         try:
             bet = int(input(f"{player} has ${player.bank}. Your bet: "))
@@ -177,7 +177,7 @@ def get_player_bet(player, minimum_bet) -> None:
                 print(f"Bet must be at least ${minimum_bet}.")
 
 
-def hit(player) -> bool:
+def hit(player: Player) -> bool:
     while True:
         response = input(f"Hit or Stay? (h/s): ")
         if response.lower() == 'h':
@@ -188,7 +188,7 @@ def hit(player) -> bool:
             print("Please enter 'h' or 's'.")
 
 
-def print_header(message) -> None:
+def print_header(message: str) -> None:
     padding_amount = int((SCREEN_WIDTH - len(message)) / 2) - 2
     for _ in range(padding_amount):
         print("-", end="")
