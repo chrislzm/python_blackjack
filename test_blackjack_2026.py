@@ -27,10 +27,10 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('10', 'Spades'))
         hand.cards.append(Card('10', 'Hearts'))
         hand.cards.append(Card('3', 'Clubs'))
-        self.assertEqual(str(hand), "[  ] [  ] [  ] ")
+        self.assertEqual(str(hand), "[  ] [  ] [  ]")
         hand.cards[1].face_up = True
         hand.cards[2].face_up = True
-        self.assertEqual(str(hand), "[  ] [10♥] [3♣] ")
+        self.assertEqual(str(hand), "[  ] [10♥] [3♣]")
 
     '''
     Hand Value tests
@@ -56,6 +56,7 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('A', 'Spades'))
         hand.cards.append(Card('10', 'Hearts'))
         self.assertEqual(hand.value(), 21)
+        self.assertTrue(hand.is_blackjack())
         self.assertEqual(hand.is_bust(), False)
 
     def test_hand_value_multiple_aces(self):
@@ -65,6 +66,7 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('A', 'Clubs'))
         hand.cards.append(Card('5', 'Hearts'))
         self.assertEqual(hand.value(), 18)
+        self.assertFalse(hand.is_blackjack())
         self.assertEqual(hand.is_bust(), False)
 
     '''

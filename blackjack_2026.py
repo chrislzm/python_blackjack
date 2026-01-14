@@ -98,10 +98,7 @@ class Hand():
         return self.value() == 17 and not self.soft
 
     def __str__(self):
-        string_output = ""
-        for card in self.cards:
-            string_output += f"{card} "
-        return string_output
+        return " ".join(str(card) for card in self.cards)
 
 
 class Dealer():
@@ -350,16 +347,16 @@ def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
         if (dealer.hand.is_bust() or
                 player.hand.value() > dealer.hand.value()):
             player.bank += player.bet * 2
-            print(f"{player} hand {player.hand}wins ${player.bet} "
+            print(f"{player} hand {player.hand} wins ${player.bet} "
                   f"and now has ${player.bank}")
             player.bet = 0
         elif dealer.hand.value() == player.hand.value():
             player.bank += player.bet
-            print(f"{player} hand {player.hand}is a push, ${player.bet} "
+            print(f"{player} hand {player.hand} is a push, ${player.bet} "
                   f"is returned and they now have ${player.bank}.")
             player.bet = 0
         elif dealer.hand.value() > player.hand.value():
-            print(f"{player} hand {player.hand}loses to dealer's hand and "
+            print(f"{player} hand {player.hand} loses to dealer's hand and "
                   f"they lose their ${player.bet} bet. "
                   f"They now have ${player.bank}.")
             player.bet = 0
