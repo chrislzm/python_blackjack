@@ -155,20 +155,21 @@ class Dealer():
             self.drew_cut_card = False
 
 
-class Player():
+@dataclass
+class Player:
     '''
     Represents a player in a game of Blackjack.
     '''
-
-    def __init__(self, number, name, bank):
-        self.number = number
-        self.name = name
-        self.bank = bank
-        self.bet = 0
-        self.hand = Hand()
+    number: int
+    name: str
+    bank: int
 
     def __str__(self):
         return f"Player {self.number} ({self.name})"
+
+    def __post_init__(self):
+        self.bet = 0
+        self.hand = Hand()
 
 
 def clear_screen() -> None:
