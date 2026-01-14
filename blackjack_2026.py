@@ -388,8 +388,7 @@ def main():
             dealer.reveal_blackjack()
         else:
             play_player_rounds(active_players, dealer)
-
-        play_dealer_round(dealer)
+            play_dealer_round(dealer)
 
         resolve_player_bets(active_players, dealer)
 
