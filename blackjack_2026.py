@@ -242,13 +242,12 @@ def hit(player: Player) -> bool:
     False for stay.
     '''
     while True:
-        response = input(f"Hit or Stay? (h/s): ")
+        response = input("Hit or Stay? (h/s): ")
         if response.lower() == 'h':
             return True
-        elif response.lower() == 's':
+        if response.lower() == 's':
             return False
-        else:
-            print("Please enter 'h' or 's'.")
+        print("Please enter 'h' or 's'.")
 
 
 def print_header(message: str) -> None:
@@ -442,15 +441,14 @@ def should_game_on(players: list[Player]) -> bool:
     if len(players) == 0:
         print("There are no more eligible players.")
         return False
-    else:
-        while True:
-            response = input(f"Play another round? (y/n): ")
-            if response.lower() == 'y':
-                return True
-            elif response.lower() == 'n':
-                return False
-            else:
-                print("Please enter 'y' or 'n'.")
+
+    while True:
+        response = input(f"Play another round? (y/n): ")
+        if response.lower() == 'y':
+            return True
+        if response.lower() == 'n':
+            return False
+        print("Please enter 'y' or 'n'.")
 
 
 def main():
