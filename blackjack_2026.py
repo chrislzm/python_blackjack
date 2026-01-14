@@ -145,11 +145,17 @@ def get_num_players() -> int:
             print("Please enter a number greater than 0.")
 
 
-def get_player_name(player_num) -> str:
-    while True:
-        player_name = input(f"Player {player_num} - Please enter your name: ")
-        if len(player_name) > 0:
-            return player_name
+def get_players(num_players: int) -> list:
+    players = []
+    for player_num in range(1, num_players+1):
+        while True:
+            player_name = input(f"Player {player_num} - "
+                                f"Please enter your name: ")
+            if len(player_name) > 0:
+                break
+        players.append(Player(player_num, player_name, PLAYER_STARTING_BANK))
+        print(f"Welcome, {player_name}!")
+    return players
 
 
 def get_player_bet(player, minimum_bet) -> None:
@@ -194,6 +200,17 @@ def print_header(message) -> None:
     print("")
 
 
+def print_rules() -> None:
+    print_header("HOUSE RULES")
+    print(f"All players start with ${PLAYER_STARTING_BANK}.\n"
+          f"Dealer must hit on soft 17.\n"
+          f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
+          f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
+          "remain in the shoe.\n"
+          f"Minimum bet is ${MINIMUM_BET}.\n"
+          f"Blackjack pays 3:2.")
+
+
 def play_again() -> bool:
     while True:
         response = input(f"Play another round? (y/n): ")
@@ -207,39 +224,111 @@ def play_again() -> bool:
 
 def print_final_stats(players: list[Player]) -> None:
     for player in players:
-        won_or_lost = "Won" if player.bank > PLAYER_STARTING_BANK else "Lost"
+        won_or_lost = "Won" if player.bank >= PLAYER_STARTING_BANK else "Lost"
         print(f"{player} - Leaves with ${player.bank} - "
               f"{won_or_lost} ${abs(PLAYER_STARTING_BANK-player.bank)}")
+
+
+def play_player_round(player: Player, dealer: Dealer) -> None:
+    print_header(f"{player}")
+    if player.hand.is_blackjack():
+        print(f"Hand: {player.hand} - Blackjack! ")
+        win_amount = player.bet * 1.5
+        player.bank += win_amount + player.bet
+        player.bet = 0
+        print(f"You win ${win_amount} and now have "
+              f"${player.bank}")
+    else:
+        stay = False
+        while not stay:
+            print(player.hand)
+            if hit(player):
+                player.hand.cards.append(dealer.deal_one(True))
+                if player.hand.is_bust():
+                    print(player.hand)
+                    print("Bust! You lost your bet of "
+                          f"${player.bet}.")
+                    player.bet = 0
+                    stay = True
+                if player.hand.is_blackjack():
+                    print(player.hand)
+                    print(f"Twenty one!")
+                    stay = True
+            else:
+                stay = True
+
+
+def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
+    print_header("Resolving bets")
+    for player in players:
+        if player.bet == 0:
+            continue
+        if (dealer.hand.is_bust() or
+                player.hand.value() > dealer.hand.value()):
+            player.bank += player.bet * 2
+            print(f"{player} hand {player.hand}wins ${player.bet} "
+                  f"and now has ${player.bank}")
+            player.bet = 0
+        elif dealer.hand.value() == player.hand.value():
+            player.bank += player.bet
+            print(f"{player} hand {player.hand}is a push, ${player.bet} "
+                  f"is returned and they now have ${player.bank}.")
+            player.bet = 0
+        elif dealer.hand.value() > player.hand.value():
+            print(f"{player} hand {player.hand}loses to dealer's hand and "
+                  f"they lose their ${player.bet} bet. "
+                  f"They now have ${player.bank}.")
+            player.bet = 0
+
+
+def play_dealer_round(dealer: Dealer) -> None:
+    print_header("Dealer")
+    dealer.hand.cards[0].face_up = True
+    print(dealer.hand)
+    while dealer.hand.value() <= 17 and not dealer.hand.is_hard_17():
+        print("Dealer hits.")
+        dealer.hand.cards.append(dealer.deal_one(True))
+        print(dealer.hand)
+    if dealer.hand.is_bust():
+        print("Dealer busted!")
+    else:
+        print("Dealer stays.")
+
+
+def round_end_cleanup(players: Player, dealer: Dealer) -> None:
+    while len(dealer.hand.cards) != 0:
+        dealer.discard.append(dealer.hand.cards.pop())
+    bankrupt_players = []
+    for player in players:
+        while len(player.hand.cards) != 0:
+            dealer.discard.append(player.hand.cards.pop())
+        if player.bank < MINIMUM_BET:
+            bankrupt_players.append(player.number)
+            print(f"{player} only has ${player.bank} which is less than "
+                  f"the minimum bet of ${MINIMUM_BET}. They are being "
+                  f"removed from the table.")
+    while len(bankrupt_players) != 0:
+        # Remove players moving backwards, with 0-based index
+        players.pop(bankrupt_players[-1]-1)
+        bankrupt_players.pop(-1)
 
 
 def main():
     clear_screen()
     print_header("Welcome to Blackjack!")
-    players = []
     num_players = get_num_players()
-
-    for player_num in range(1, num_players+1):
-        player_name = get_player_name(player_num)
-        players.append(Player(player_num, player_name, PLAYER_STARTING_BANK))
-        print(f"Welcome, {player_name}!")
+    active_players = get_players(num_players)
+    all_players = active_players.copy()
 
     dealer = Dealer(NUM_SHOE_DECKS, SHOE_CUT_CARD_POSITION)
 
-    # Print rules
-    print_header("HOUSE RULES")
-    print(f"All players start with ${PLAYER_STARTING_BANK}.\n"
-          f"Dealer must hit on soft 17.\n"
-          f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
-          f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
-          "remain in the shoe.\n"
-          f"Minimum bet is ${MINIMUM_BET}.\n"
-          f"Blackjack pays 3:2.")
+    print_rules()
 
     game_on = True
 
     while game_on:
         print_header("Place your bets")
-        for player in players:
+        for player in active_players:
             get_player_bet(player, MINIMUM_BET)
 
         print_header("Dealer")
@@ -247,113 +336,43 @@ def main():
 
         # Deal first card
         dealer.hand.cards.append(dealer.deal_one(False))
-        for player in players:
+        for player in active_players:
             player.hand.cards.append(dealer.deal_one(True))
 
         # Deal second card
         dealer.hand.cards.append(dealer.deal_one(True))
-        for player in players:
+        for player in active_players:
             player.hand.cards.append(dealer.deal_one(True))
 
         # Announce cards
         print(f"Dealer shows: {dealer.hand}")
-        for player in players:
+        for player in active_players:
             print(f"{player} shows: {player.hand}")
 
         if dealer.hand.is_blackjack():
             dealer.hand.cards[0].face_up = True
             print(f"Dealer Blackjack! Dealer shows: {dealer.hand}")
         else:
-            for player in players:
-                print_header(f"{player}")
-                if player.hand.is_blackjack():
-                    print(f"Hand: {player.hand} - Blackjack! ")
-                    win_amount = player.bet * 1.5
-                    player.bank += win_amount + player.bet
-                    player.bet = 0
-                    print(f"You win ${win_amount} and now have "
-                          f"${player.bank}")
-                else:
-                    stay = False
-                    while not stay:
-                        print(player.hand)
-                        if hit(player):
-                            player.hand.cards.append(dealer.deal_one(True))
-                            if player.hand.is_bust():
-                                print(player.hand)
-                                print("Bust! You lost your bet of "
-                                      f"${player.bet}.")
-                                player.bet = 0
-                                stay = True
-                            if player.hand.is_blackjack():
-                                print(player.hand)
-                                print(f"Twenty one!")
-                                stay = True
-                        else:
-                            stay = True
+            for player in active_players:
+                play_player_round(player, dealer)
 
-            print_header("Dealer")
-            dealer.hand.cards[0].face_up = True
-            print(dealer.hand)
-            while dealer.hand.value() <= 17 and not dealer.hand.is_hard_17():
-                print("Dealer hits.")
-                dealer.hand.cards.append(dealer.deal_one(True))
-                print(dealer.hand)
-            if dealer.hand.is_bust():
-                print("Dealer busted!")
-            else:
-                print("Dealer stays.")
+        play_dealer_round(dealer)
 
-        print_header("Resolving bets")
-        for player in players:
-            if player.bet == 0:
-                continue
-            if (dealer.hand.is_bust() or
-                    player.hand.value() > dealer.hand.value()):
-                player.bank += player.bet * 2
-                print(f"{player} hand {player.hand}wins ${player.bet} "
-                      f"and now has ${player.bank}")
-                player.bet = 0
-            elif dealer.hand.value() == player.hand.value():
-                player.bank += player.bet
-                print(f"{player} hand {player.hand}is a push, ${player.bet} "
-                      f"is returned and they now have ${player.bank}.")
-                player.bet = 0
-            elif dealer.hand.value() > player.hand.value():
-                print(f"{player} hand {player.hand}loses to dealer's hand and "
-                      f"they lose their ${player.bet} bet. "
-                      f"They now have ${player.bank}.")
-                player.bet = 0
+        resolve_player_bets(active_players, dealer)
 
-        # Round end - Cleanup
-        while len(dealer.hand.cards) != 0:
-            dealer.discard.append(dealer.hand.cards.pop())
-        bankrupt_players = []
-        for player in players:
-            while len(player.hand.cards) != 0:
-                dealer.discard.append(player.hand.cards.pop())
-            if player.bank < MINIMUM_BET:
-                bankrupt_players.append(player.number)
-                print(f"{player} only has ${player.bank} which is less than "
-                      f"the minimum bet of ${MINIMUM_BET}. They are being "
-                      f"removed from the table.")
-        while len(bankrupt_players) != 0:
-            # Remove players moving backwards, with 0-based index
-            players.pop(bankrupt_players[-1]-1)
-            bankrupt_players.pop(-1)
+        round_end_cleanup(active_players, dealer)
 
-        if len(players) == 0:
+        if len(active_players) == 0:
             print("There are no more eligible players.")
             game_on = False
-
-        if game_on:
+        else:
             if play_again():
                 dealer.reshuffle_shoe_if_needed()
             else:
                 game_on = False
 
     print_header("Game over")
-    print_final_stats(players)
+    print_final_stats(all_players)
     print_header("Have a nice day! :)")
 
 
