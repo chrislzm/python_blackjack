@@ -9,6 +9,7 @@ from blackjack_2026 import Card
 from blackjack_2026 import Hand
 from blackjack_2026 import Dealer
 
+
 class TestBlackjack2026(unittest.TestCase):
 
     '''
@@ -40,7 +41,7 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('10', 'Spades'))
         hand.cards.append(Card('5', 'Diamonds'))
         self.assertEqual(hand.value(), 15)
-        self.assertEqual(hand.bust(), False)
+        self.assertEqual(hand.is_bust(), False)
 
     def test_hand_value_and_bust_true(self):
         hand = Hand()
@@ -48,14 +49,14 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('10', 'Hearts'))
         hand.cards.append(Card('3', 'Clubs'))
         self.assertEqual(hand.value(), 23)
-        self.assertEqual(hand.bust(), True)
+        self.assertEqual(hand.is_bust(), True)
 
     def test_hand_value_one_ace(self):
         hand = Hand()
         hand.cards.append(Card('A', 'Spades'))
         hand.cards.append(Card('10', 'Hearts'))
         self.assertEqual(hand.value(), 21)
-        self.assertEqual(hand.bust(), False)
+        self.assertEqual(hand.is_bust(), False)
 
     def test_hand_value_multiple_aces(self):
         hand = Hand()
@@ -64,7 +65,7 @@ class TestBlackjack2026(unittest.TestCase):
         hand.cards.append(Card('A', 'Clubs'))
         hand.cards.append(Card('5', 'Hearts'))
         self.assertEqual(hand.value(), 18)
-        self.assertEqual(hand.bust(), False)
+        self.assertEqual(hand.is_bust(), False)
 
     '''
     Dealer tests

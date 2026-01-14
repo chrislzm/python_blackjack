@@ -5,6 +5,8 @@ January 9, 2026
 '''
 
 import random
+from dataclasses import dataclass, field
+from typing import List
 
 CARD_SUITS = ('Hearts', 'Clubs', 'Diamonds', 'Spades')
 CARD_SUIT_SYMBOLS = {'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦',
@@ -19,24 +21,23 @@ SHOE_CUT_CARD_POSITION = 52  # Reshuffle when one deck remains in the shoe
 SCREEN_WIDTH = 80
 
 
-class Card():
-
-    def __init__(self, rank, suit):
-        self.rank = rank
-        self.suit = suit
-        self.face_up = False
+@dataclass
+class Card:
+    rank: str
+    suit: str
+    face_up: bool = False
 
     def __str__(self):
         if self.face_up:
             return f"[{self.rank}{CARD_SUIT_SYMBOLS[self.suit]}]"
-        else:
-            return "[  ]"
+        return "[  ]"
 
 
-class Deck():
+@dataclass
+class Deck:
+    cards: List[Card] = field(default_factory=list)
 
-    def __init__(self):
-        self.cards = []
+    def __post_init__(self):
         for suit in CARD_SUITS:
             for rank in CARD_RANKS:
                 new_card = Card(rank, suit)
@@ -94,7 +95,7 @@ class Dealer():
             self.shoe.extend(deck.cards)
         random.shuffle(self.shoe)
 
-    def deal_one(self, face_up) -> Card:
+    def deal_one(self, face_up=False) -> Card:
         if len(self.shoe) <= self.shoe_cut_card_position:
             self.drew_cut_card = True
         if len(self.shoe) == 0:
