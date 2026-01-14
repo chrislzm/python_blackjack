@@ -259,24 +259,7 @@ def print_header(message: str) -> None:
     Prints a message center aligned and padded by dashes. Fills the width of
     the screen defined by the global SCREEN_WIDTH.
     '''
-    printed_chars = 0
-    padding_amount = int((SCREEN_WIDTH - len(message)) / 2) - 2
-    for _ in range(padding_amount):
-        print("-", end="")
-        printed_chars += 1
-
-    print(f" {message} ", end="")
-    printed_chars += len(message) + 2
-
-    for _ in range(padding_amount):
-        print("-", end="")
-        printed_chars += 1
-
-    # Fill any remaining available space
-    for _ in range(SCREEN_WIDTH-printed_chars):
-        print("-", end="")
-
-    print("")  # Line break
+    print(f" {message} ".center(SCREEN_WIDTH, "-"))
 
 
 def print_game_rules() -> None:
