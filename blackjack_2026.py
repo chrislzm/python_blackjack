@@ -23,6 +23,10 @@ SCREEN_WIDTH = 80
 
 @dataclass
 class Card:
+    '''
+    Represents a single card in a standard 52-card deck.
+    '''
+
     rank: str
     suit: str
     face_up: bool = False
@@ -35,6 +39,9 @@ class Card:
 
 @dataclass
 class Deck:
+    '''
+    Represents a standard 52-card deck.
+    '''
     cards: List[Card] = field(default_factory=list)
 
     def __post_init__(self):
@@ -45,12 +52,20 @@ class Deck:
 
 
 class Hand():
+    '''
+    Represents a hand in Blackjack.
+    '''
 
     def __init__(self):
         self.cards = []
         self.soft = False
 
     def value(self) -> int:
+        '''
+        Returns the numberic value of the Blackjack hand, maximizing the value
+        of aces after. Tracks whether the hand is soft or hard using the 'soft'
+        attribute.
+        '''
         total_value = 0
         num_aces = 0
         for card in self.cards:
@@ -65,12 +80,21 @@ class Hand():
         return total_value
 
     def is_bust(self) -> bool:
+        '''
+        Returns True if the hand is a bust.
+        '''
         return self.value() > 21
 
     def is_blackjack(self) -> bool:
-        return self.value() == 21
+        '''
+        Returns True if the hand is a blackjack.
+        '''
+        return len(self.cards) == 2 and self.value() == 21
 
     def is_hard_17(self) -> bool:
+        '''
+        Returns True if the hand is a hard 17.
+        '''
         return self.value() == 17 and not self.soft
 
     def __str__(self):
@@ -81,6 +105,9 @@ class Hand():
 
 
 class Dealer():
+    '''
+    Represents a dealer in a game of Blackjack.
+    '''
 
     def __init__(self, num_shoe_decks, shoe_cut_card_position):
         self.hand = Hand()
@@ -96,6 +123,11 @@ class Dealer():
         random.shuffle(self.shoe)
 
     def deal_one(self, face_up=False) -> Card:
+        '''
+        Deals one card from the shoe and returns it. Tracks whether the shoe
+        should be reshuffled using the attributes 'shoe_cut_card_position' and
+        'drew_cut_card'.
+        '''
         if len(self.shoe) <= self.shoe_cut_card_position:
             self.drew_cut_card = True
         if len(self.shoe) == 0:
@@ -107,10 +139,18 @@ class Dealer():
         return dealt_card
 
     def reveal_blackjack(self) -> None:
-        self.hand.cards[0].face_up = True
-        print(f"Dealer Blackjack! Dealer shows: {self.hand}")
+        '''
+        Reveals and announces dealer blackjack.
+        '''
+        if self.hand.is_blackjack():
+            self.hand.cards[0].face_up = True
+            print(f"Dealer Blackjack! Dealer shows: {self.hand}")
 
     def reshuffle_shoe_if_needed(self) -> None:
+        '''
+        Reshuffles the entire shoe (adding cards from the discard pile) if the
+        cut card has been reached.
+        '''
         if self.drew_cut_card:
             self.shoe.extend(self.discard)
             self.discard.clear()
@@ -119,6 +159,9 @@ class Dealer():
 
 
 class Player():
+    '''
+    Represents a player in a game of Blackjack.
+    '''
 
     def __init__(self, number, name, bank):
         self.number = number
@@ -132,13 +175,16 @@ class Player():
 
 
 def clear_screen() -> None:
-    """
+    '''
     Clears the display to a blank screen.
-    """
+    '''
     print('\n'*100)
 
 
 def get_num_players() -> int:
+    '''
+    Requests number of players from the user and returns it as an int.
+    '''
     while True:
         try:
             num_players = int(input("Please enter number of players: "))
@@ -152,8 +198,8 @@ def get_num_players() -> int:
 
 def setup_players(num_players: int, starting_bank: int) -> list[Player]:
     '''
-    Sets up each player object. Gets player names (via input) and prints a
-    message to welcome them.
+    Sets up each Player object. Requests player names and prints a message to
+    welcome them.
     '''
     players = []
     for player_num in range(1, num_players+1):
@@ -168,6 +214,9 @@ def setup_players(num_players: int, starting_bank: int) -> list[Player]:
 
 
 def get_player_bets(players: list[Player], minimum_bet: int) -> None:
+    '''
+    Requests a bet for each player.
+    '''
     print_header("Place your bets!")
     for player in players:
         placed_bet = False
@@ -190,6 +239,10 @@ def get_player_bets(players: list[Player], minimum_bet: int) -> None:
 
 
 def hit(player: Player) -> bool:
+    '''
+    Requests that a player either hit or stay. Returns True for hit,
+    False for stay.
+    '''
     while True:
         response = input(f"Hit or Stay? (h/s): ")
         if response.lower() == 'h':
@@ -201,6 +254,10 @@ def hit(player: Player) -> bool:
 
 
 def print_header(message: str) -> None:
+    '''
+    Prints a message center aligned and padded by dashes. Fills the width of
+    the screen defined by the global SCREEN_WIDTH.
+    '''
     printed_chars = 0
     padding_amount = int((SCREEN_WIDTH - len(message)) / 2) - 2
     for _ in range(padding_amount):
@@ -222,6 +279,9 @@ def print_header(message: str) -> None:
 
 
 def print_game_rules() -> None:
+    '''
+    Prints all the rules of the Blackjack game to the screen.
+    '''
     print_header("HOUSE RULES")
     print(f"All players start with {PLAYER_STARTING_BANK}.\n"
           f"Dealer must hit on soft 17.\n"
@@ -234,6 +294,9 @@ def print_game_rules() -> None:
 
 def print_final_stats(players: list[Player],
                       player_starting_bank: int) -> None:
+    '''
+    Prints final stats for all players to the screen.
+    '''
     for player in players:
         won_or_lost = "Won" if player.bank >= player_starting_bank else "Lost"
         print(f"{player} - Leaves with ${player.bank} - "
@@ -241,6 +304,11 @@ def print_final_stats(players: list[Player],
 
 
 def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
+    '''
+    Plays each player's hand -- requesting hit/stay and handles busts. Also
+    handles blackjack as a special case, immediately awarding their bet 3:2
+    (just like in the casinos!).
+    '''
     for player in players:
         print_header(f"{player}")
         if player.hand.is_blackjack():
@@ -271,6 +339,10 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
 
 
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
+    '''
+    Resolves each player's bet by evaluating their hand against the dealer's
+    hand and taking the appropriate action regarding their bet.
+    '''
     print_header("Resolving bets")
     for player in players:
         if player.bet == 0:
@@ -294,6 +366,9 @@ def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
 
 
 def play_dealer_round(dealer: Dealer) -> None:
+    '''
+    Plays the dealer's hand.
+    '''
     print_header("Dealer")
     dealer.hand.cards[0].face_up = True
     print(dealer.hand)
@@ -308,6 +383,10 @@ def play_dealer_round(dealer: Dealer) -> None:
 
 
 def discard_cards(players: Player, dealer: Dealer) -> None:
+    '''
+    Moves cards from dealer and player hands to the discard pile. Used at the
+    end of a round.
+    '''
     while len(dealer.hand.cards) != 0:
         dealer.discard.append(dealer.hand.cards.pop())
     for player in players:
@@ -316,6 +395,9 @@ def discard_cards(players: Player, dealer: Dealer) -> None:
 
 
 def remove_bankrupt_players(players: list[Player], minimum_bet: int):
+    '''
+    Remove players from the player list who cannot meet the minimum bet.
+    '''
     bankrupt_players = []
     for player in players:
         if player.bank < minimum_bet:
@@ -331,7 +413,10 @@ def remove_bankrupt_players(players: list[Player], minimum_bet: int):
 
 
 def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
-
+    '''
+    Deals the first two cards to the dealer and players. The first dealer card
+    is face down, all other cards are face up. Prints the results.
+    '''
     print_header("Dealer")
     print("Dealing cards...")
 
@@ -352,6 +437,10 @@ def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
 
 
 def should_game_on(players: list[Player]) -> bool:
+    '''
+    Decides whether the game should continue and returns True (continue) or
+    False (end game).
+    '''
     if len(players) == 0:
         print("There are no more eligible players.")
         return False
