@@ -205,6 +205,13 @@ def play_again() -> bool:
             print("Please enter 'y' or 'n'.")
 
 
+def print_final_stats(players: list[Player]) -> None:
+    for player in players:
+        won_or_lost = "Won" if player.bank > PLAYER_STARTING_BANK else "Lost"
+        print(f"{player} - Leaves with ${player.bank} - "
+              f"{won_or_lost} ${abs(PLAYER_STARTING_BANK-player.bank)}")
+
+
 def main():
     clear_screen()
     print_header("Welcome to Blackjack!")
@@ -274,7 +281,8 @@ def main():
                             player.hand.cards.append(dealer.deal_one(True))
                             if player.hand.is_bust():
                                 print(player.hand)
-                                print(f"Bust! You lose your bet of ${player.bet}.")
+                                print("Bust! You lost your bet of "
+                                      f"${player.bet}.")
                                 player.bet = 0
                                 stay = True
                             if player.hand.is_blackjack():
@@ -345,7 +353,8 @@ def main():
                 game_on = False
 
     print_header("Game over")
-    print("Have a nice day! :)")
+    print_final_stats(players)
+    print_header("Have a nice day! :)")
 
 
 if __name__ == '__main__':
