@@ -163,6 +163,7 @@ def setup_players(num_players: int, starting_bank: int) -> list[Player]:
 
 
 def get_player_bets(players: list[Player], minimum_bet: int) -> None:
+    print_header("Place your bets!")
     for player in players:
         placed_bet = False
         while not placed_bet:
@@ -321,6 +322,10 @@ def round_end_cleanup(players: Player, dealer: Dealer,
 
 
 def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
+
+    print_header("Dealer")
+    print("Dealing cards...")
+
     # Deal first card
     dealer.hand.cards.append(dealer.deal_one(False))
     for player in players:
@@ -355,6 +360,7 @@ def should_game_on(players: list[Player]) -> bool:
 def main():
     clear_screen()
     print_header("Welcome to Blackjack!")
+
     num_players = get_num_players()
     active_players = setup_players(num_players, PLAYER_STARTING_BANK)
     all_players = active_players.copy()
@@ -366,11 +372,7 @@ def main():
     game_on = True
 
     while game_on:
-        print_header("Place your bets!")
         get_player_bets(active_players, MINIMUM_BET)
-
-        print_header("Dealer")
-        print("Dealing cards...")
 
         deal_first_two_cards(active_players, dealer)
 
