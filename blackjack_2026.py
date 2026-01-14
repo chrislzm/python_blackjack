@@ -2,11 +2,15 @@
 Blackjack: Milestone 2 Project for "The Complete Python Bootcamp"
 Author: Chris Leung
 January 9, 2026
+
+Future improvements:
+* Support dollar amounts < $1
+* Expand unit test coverage
+
 '''
 
 import random
 from dataclasses import dataclass, field
-from typing import List
 
 CARD_SUITS = ('Hearts', 'Clubs', 'Diamonds', 'Spades')
 CARD_SUIT_SYMBOLS = {'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦',
@@ -42,7 +46,7 @@ class Deck:
     '''
     Represents a standard 52-card deck.
     '''
-    cards: List[Card] = field(default_factory=list)
+    cards: list[Card] = field(default_factory=list)
 
     def __post_init__(self):
         for suit in CARD_SUITS:
@@ -51,7 +55,7 @@ class Deck:
                 self.cards.append(new_card)
 
 
-class Hand():
+class Hand:
     '''
     Represents a hand in Blackjack.
     '''
@@ -62,7 +66,7 @@ class Hand():
 
     def value(self) -> int:
         '''
-        Returns the numberic value of the Blackjack hand, maximizing the value
+        Returns the numeric value of the Blackjack hand, maximizing the value
         of aces after. Tracks whether the hand is soft or hard using the 'soft'
         attribute.
         '''
@@ -101,7 +105,7 @@ class Hand():
         return " ".join(str(card) for card in self.cards)
 
 
-class Dealer():
+class Dealer:
     '''
     Represents a dealer in a game of Blackjack.
     '''
@@ -310,7 +314,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
         print_header(f"{player}")
         if player.hand.is_blackjack():
             print(f"Hand: {player.hand} - Blackjack! ")
-            win_amount = player.bet * 1.5
+            win_amount = player.bet * 3 // 2
             player.bank += win_amount + player.bet
             player.bet = 0
             print(f"You win ${win_amount} and now have "
@@ -327,7 +331,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                               f"${player.bet}.")
                         player.bet = 0
                         stay = True
-                    if player.hand.is_blackjack():
+                    if player.hand.value() == 21:
                         print(player.hand)
                         print("Twenty one!")
                         stay = True
@@ -379,7 +383,7 @@ def play_dealer_round(dealer: Dealer) -> None:
         print("Dealer stays.")
 
 
-def discard_cards(players: Player, dealer: Dealer) -> None:
+def discard_cards(players: list[Player], dealer: Dealer) -> None:
     '''
     Moves cards from dealer and player hands to the discard pile. Used at the
     end of a round.
