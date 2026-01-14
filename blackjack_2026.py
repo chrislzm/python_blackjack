@@ -49,7 +49,7 @@ class Hand():
         self.cards = []
         self.soft = False
 
-    def value(self):
+    def value(self) -> int:
         total_value = 0
         num_aces = 0
         for card in self.cards:
@@ -63,13 +63,13 @@ class Hand():
                 self.soft = True
         return total_value
 
-    def is_bust(self):
+    def is_bust(self) -> bool:
         return self.value() > 21
 
-    def is_blackjack(self):
+    def is_blackjack(self) -> bool:
         return self.value() == 21
 
-    def is_hard_17(self):
+    def is_hard_17(self) -> bool:
         return self.value() == 17 and not self.soft
 
     def __str__(self):
@@ -94,7 +94,7 @@ class Dealer():
             self.shoe.extend(deck.cards)
         random.shuffle(self.shoe)
 
-    def deal_one(self, face_up):
+    def deal_one(self, face_up) -> Card:
         if len(self.shoe) <= self.shoe_cut_card_position:
             self.drew_cut_card = True
         if len(self.shoe) == 0:
@@ -105,7 +105,11 @@ class Dealer():
         dealt_card.face_up = face_up
         return dealt_card
 
-    def reshuffle_shoe_if_needed(self):
+    def reveal_blackjack(self) -> None:
+        self.hand.cards[0].face_up = True
+        print(f"Dealer Blackjack! Dealer shows: {self.hand}")
+
+    def reshuffle_shoe_if_needed(self) -> None:
         if self.drew_cut_card:
             self.shoe.extend(self.discard)
             self.discard.clear()
@@ -381,8 +385,7 @@ def main():
         deal_first_two_cards(active_players, dealer)
 
         if dealer.hand.is_blackjack():
-            dealer.hand.cards[0].face_up = True
-            print(f"Dealer Blackjack! Dealer shows: {dealer.hand}")
+            dealer.reveal_blackjack()
         else:
             play_player_rounds(active_players, dealer)
 
