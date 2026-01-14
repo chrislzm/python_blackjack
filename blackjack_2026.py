@@ -236,7 +236,7 @@ def get_player_bets(players: list[Player], minimum_bet: int) -> None:
                     print(f"Bet must be at least ${minimum_bet}.")
 
 
-def hit(player: Player) -> bool:
+def hit() -> bool:
     '''
     Requests that a player either hit or stay. Returns True for hit,
     False for stay.
@@ -319,7 +319,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
             stay = False
             while not stay:
                 print(player.hand)
-                if hit(player):
+                if hit():
                     player.hand.cards.append(dealer.deal_one(True))
                     if player.hand.is_bust():
                         print(player.hand)
@@ -329,7 +329,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         stay = True
                     if player.hand.is_blackjack():
                         print(player.hand)
-                        print(f"Twenty one!")
+                        print("Twenty one!")
                         stay = True
                 else:
                     stay = True
@@ -443,7 +443,7 @@ def should_game_on(players: list[Player]) -> bool:
         return False
 
     while True:
-        response = input(f"Play another round? (y/n): ")
+        response = input("Play another round? (y/n): ")
         if response.lower() == 'y':
             return True
         if response.lower() == 'n':
@@ -452,6 +452,9 @@ def should_game_on(players: list[Player]) -> bool:
 
 
 def main():
+    '''
+    The Blackjack game.
+    '''
     clear_screen()
     print_header("Welcome to Blackjack!")
 
