@@ -302,21 +302,25 @@ def play_dealer_round(dealer: Dealer) -> None:
         print("Dealer stays.")
 
 
-def round_end_cleanup(players: Player, dealer: Dealer,
-                      minimum_bet: int) -> None:
+def discard_cards(players: Player, dealer: Dealer) -> None:
     while len(dealer.hand.cards) != 0:
         dealer.discard.append(dealer.hand.cards.pop())
-    bankrupt_players = []
     for player in players:
         while len(player.hand.cards) != 0:
             dealer.discard.append(player.hand.cards.pop())
+
+
+def remove_bankrupt_players(players: list[Player], minimum_bet: int):
+    bankrupt_players = []
+    for player in players:
         if player.bank < minimum_bet:
             bankrupt_players.append(player.number)
             print(f"{player} only has ${player.bank} which is less than "
                   f"the minimum bet of ${minimum_bet}. They are being "
                   f"removed from the table.")
     while len(bankrupt_players) != 0:
-        # Remove players moving backwards, with 0-based index
+        # Remove players moving backwards, with 0-based index, since removing
+        # them in forwards order would change the order
         players.pop(bankrupt_players[-1]-1)
         bankrupt_players.pop(-1)
 
@@ -386,7 +390,9 @@ def main():
 
         resolve_player_bets(active_players, dealer)
 
-        round_end_cleanup(active_players, dealer, MINIMUM_BET)
+        discard_cards(active_players, dealer)
+
+        remove_bankrupt_players(active_players, MINIMUM_BET)
 
         if should_game_on(active_players):
             dealer.reshuffle_shoe_if_needed()
