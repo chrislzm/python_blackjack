@@ -145,7 +145,11 @@ def get_num_players() -> int:
             print("Please enter a number greater than 0.")
 
 
-def get_players(num_players: int) -> list[Player]:
+def setup_players(num_players: int, starting_bank: int) -> list[Player]:
+    '''
+    Sets up each player object. Gets player names (via input) and prints a
+    message to welcome them.
+    '''
     players = []
     for player_num in range(1, num_players+1):
         while True:
@@ -153,28 +157,30 @@ def get_players(num_players: int) -> list[Player]:
                                 f"Please enter your name: ")
             if len(player_name) > 0:
                 break
-        players.append(Player(player_num, player_name, PLAYER_STARTING_BANK))
+        players.append(Player(player_num, player_name, starting_bank))
         print(f"Welcome, {player_name}!")
     return players
 
 
-def get_player_bet(player: Player, minimum_bet: int) -> None:
-    while True:
-        try:
-            bet = int(input(f"{player} has ${player.bank}. Your bet: "))
-        except ValueError:
-            print("Sorry, that's not a valid input.")
-        else:
-            if bet >= minimum_bet:
-                if bet > player.bank:
-                    print("Sorry, that's more than you have in your bank.")
-                else:
-                    player.bet = bet
-                    player.bank -= bet
-                    print(f"{player.name} bets ${bet}")
-                    return
+def get_player_bets(players: list[Player], minimum_bet: int) -> None:
+    for player in players:
+        placed_bet = False
+        while not placed_bet:
+            try:
+                bet = int(input(f"{player} has ${player.bank}. Your bet: "))
+            except ValueError:
+                print("Sorry, that's not a valid input.")
             else:
-                print(f"Bet must be at least ${minimum_bet}.")
+                if bet >= minimum_bet:
+                    if bet > player.bank:
+                        print("Sorry, that's more than you have in your bank.")
+                    else:
+                        player.bet = bet
+                        player.bank -= bet
+                        print(f"{player.name} bets ${bet}")
+                        placed_bet = True
+                else:
+                    print(f"Bet must be at least ${minimum_bet}.")
 
 
 def hit(player: Player) -> bool:
@@ -189,20 +195,29 @@ def hit(player: Player) -> bool:
 
 
 def print_header(message: str) -> None:
+    printed_chars = 0
     padding_amount = int((SCREEN_WIDTH - len(message)) / 2) - 2
     for _ in range(padding_amount):
         print("-", end="")
-    print(" ", end="")
-    print(message, end="")
-    print(" ", end="")
+        printed_chars += 1
+
+    print(f" {message} ", end="")
+    printed_chars += len(message) + 2
+
     for _ in range(padding_amount):
         print("-", end="")
-    print("")
+        printed_chars += 1
+
+    # Fill any remaining available space
+    for _ in range(SCREEN_WIDTH-printed_chars):
+        print("-", end="")
+
+    print("")  # Line break
 
 
-def print_rules() -> None:
+def print_game_rules() -> None:
     print_header("HOUSE RULES")
-    print(f"All players start with ${PLAYER_STARTING_BANK}.\n"
+    print(f"All players start with {PLAYER_STARTING_BANK}.\n"
           f"Dealer must hit on soft 17.\n"
           f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
@@ -211,51 +226,42 @@ def print_rules() -> None:
           f"Blackjack pays 3:2.")
 
 
-def play_again() -> bool:
-    while True:
-        response = input(f"Play another round? (y/n): ")
-        if response.lower() == 'y':
-            return True
-        elif response.lower() == 'n':
-            return False
-        else:
-            print("Please enter 'y' or 'n'.")
-
-
-def print_final_stats(players: list[Player]) -> None:
+def print_final_stats(players: list[Player],
+                      player_starting_bank: int) -> None:
     for player in players:
-        won_or_lost = "Won" if player.bank >= PLAYER_STARTING_BANK else "Lost"
+        won_or_lost = "Won" if player.bank >= player_starting_bank else "Lost"
         print(f"{player} - Leaves with ${player.bank} - "
-              f"{won_or_lost} ${abs(PLAYER_STARTING_BANK-player.bank)}")
+              f"{won_or_lost} ${abs(player_starting_bank-player.bank)}")
 
 
-def play_player_round(player: Player, dealer: Dealer) -> None:
-    print_header(f"{player}")
-    if player.hand.is_blackjack():
-        print(f"Hand: {player.hand} - Blackjack! ")
-        win_amount = player.bet * 1.5
-        player.bank += win_amount + player.bet
-        player.bet = 0
-        print(f"You win ${win_amount} and now have "
-              f"${player.bank}")
-    else:
-        stay = False
-        while not stay:
-            print(player.hand)
-            if hit(player):
-                player.hand.cards.append(dealer.deal_one(True))
-                if player.hand.is_bust():
-                    print(player.hand)
-                    print("Bust! You lost your bet of "
-                          f"${player.bet}.")
-                    player.bet = 0
+def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
+    for player in players:
+        print_header(f"{player}")
+        if player.hand.is_blackjack():
+            print(f"Hand: {player.hand} - Blackjack! ")
+            win_amount = player.bet * 1.5
+            player.bank += win_amount + player.bet
+            player.bet = 0
+            print(f"You win ${win_amount} and now have "
+                  f"${player.bank}")
+        else:
+            stay = False
+            while not stay:
+                print(player.hand)
+                if hit(player):
+                    player.hand.cards.append(dealer.deal_one(True))
+                    if player.hand.is_bust():
+                        print(player.hand)
+                        print("Bust! You lost your bet of "
+                              f"${player.bet}.")
+                        player.bet = 0
+                        stay = True
+                    if player.hand.is_blackjack():
+                        print(player.hand)
+                        print(f"Twenty one!")
+                        stay = True
+                else:
                     stay = True
-                if player.hand.is_blackjack():
-                    print(player.hand)
-                    print(f"Twenty one!")
-                    stay = True
-            else:
-                stay = True
 
 
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
@@ -295,17 +301,18 @@ def play_dealer_round(dealer: Dealer) -> None:
         print("Dealer stays.")
 
 
-def round_end_cleanup(players: Player, dealer: Dealer) -> None:
+def round_end_cleanup(players: Player, dealer: Dealer,
+                      minimum_bet: int) -> None:
     while len(dealer.hand.cards) != 0:
         dealer.discard.append(dealer.hand.cards.pop())
     bankrupt_players = []
     for player in players:
         while len(player.hand.cards) != 0:
             dealer.discard.append(player.hand.cards.pop())
-        if player.bank < MINIMUM_BET:
+        if player.bank < minimum_bet:
             bankrupt_players.append(player.number)
             print(f"{player} only has ${player.bank} which is less than "
-                  f"the minimum bet of ${MINIMUM_BET}. They are being "
+                  f"the minimum bet of ${minimum_bet}. They are being "
                   f"removed from the table.")
     while len(bankrupt_players) != 0:
         # Remove players moving backwards, with 0-based index
@@ -313,66 +320,79 @@ def round_end_cleanup(players: Player, dealer: Dealer) -> None:
         bankrupt_players.pop(-1)
 
 
+def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
+    # Deal first card
+    dealer.hand.cards.append(dealer.deal_one(False))
+    for player in players:
+        player.hand.cards.append(dealer.deal_one(True))
+
+    # Deal second card
+    dealer.hand.cards.append(dealer.deal_one(True))
+    for player in players:
+        player.hand.cards.append(dealer.deal_one(True))
+
+    # Announce cards
+    print(f"Dealer shows: {dealer.hand}")
+    for player in players:
+        print(f"{player} shows: {player.hand}")
+
+
+def should_game_on(players: list[Player]) -> bool:
+    if len(players) == 0:
+        print("There are no more eligible players.")
+        return False
+    else:
+        while True:
+            response = input(f"Play another round? (y/n): ")
+            if response.lower() == 'y':
+                return True
+            elif response.lower() == 'n':
+                return False
+            else:
+                print("Please enter 'y' or 'n'.")
+
+
 def main():
     clear_screen()
     print_header("Welcome to Blackjack!")
     num_players = get_num_players()
-    active_players = get_players(num_players)
+    active_players = setup_players(num_players, PLAYER_STARTING_BANK)
     all_players = active_players.copy()
 
     dealer = Dealer(NUM_SHOE_DECKS, SHOE_CUT_CARD_POSITION)
 
-    print_rules()
+    print_game_rules()
 
     game_on = True
 
     while game_on:
-        print_header("Place your bets")
-        for player in active_players:
-            get_player_bet(player, MINIMUM_BET)
+        print_header("Place your bets!")
+        get_player_bets(active_players, MINIMUM_BET)
 
         print_header("Dealer")
         print("Dealing cards...")
 
-        # Deal first card
-        dealer.hand.cards.append(dealer.deal_one(False))
-        for player in active_players:
-            player.hand.cards.append(dealer.deal_one(True))
-
-        # Deal second card
-        dealer.hand.cards.append(dealer.deal_one(True))
-        for player in active_players:
-            player.hand.cards.append(dealer.deal_one(True))
-
-        # Announce cards
-        print(f"Dealer shows: {dealer.hand}")
-        for player in active_players:
-            print(f"{player} shows: {player.hand}")
+        deal_first_two_cards(active_players, dealer)
 
         if dealer.hand.is_blackjack():
             dealer.hand.cards[0].face_up = True
             print(f"Dealer Blackjack! Dealer shows: {dealer.hand}")
         else:
-            for player in active_players:
-                play_player_round(player, dealer)
+            play_player_rounds(active_players, dealer)
 
         play_dealer_round(dealer)
 
         resolve_player_bets(active_players, dealer)
 
-        round_end_cleanup(active_players, dealer)
+        round_end_cleanup(active_players, dealer, MINIMUM_BET)
 
-        if len(active_players) == 0:
-            print("There are no more eligible players.")
-            game_on = False
+        if should_game_on(active_players):
+            dealer.reshuffle_shoe_if_needed()
         else:
-            if play_again():
-                dealer.reshuffle_shoe_if_needed()
-            else:
-                game_on = False
+            game_on = False
 
     print_header("Game over")
-    print_final_stats(all_players)
+    print_final_stats(all_players, PLAYER_STARTING_BANK)
     print_header("Have a nice day! :)")
 
 
