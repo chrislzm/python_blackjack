@@ -245,7 +245,7 @@ def hit_stay_or_dd(offer_double_down: bool) -> str:
             response = input("Hit, Stay, or Double Down? (h/s/d): ").lower()
             if response in ('h', 's', 'd'):
                 return response
-            print("Please enter 'h', 's' or 'd''.")
+            print("Please enter 'h', 's' or 'd'.")
     else:
         while True:
             response = input("Hit or Stay? (h/s): ").lower()
