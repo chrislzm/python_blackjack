@@ -167,13 +167,11 @@ class Player:
     number: int
     name: str
     bank: int
+    bet: int = field(init=False, default=0)
+    hand: Hand = field(init=False, default_factory=Hand)
 
     def __str__(self):
         return f"Player {self.number} ({self.name})"
-
-    def __post_init__(self):
-        self.bet = 0
-        self.hand = Hand()
 
 
 def clear_screen() -> None:
