@@ -62,8 +62,8 @@ class Hand:
     '''
 
     def __init__(self):
-        self.cards = []
-        self.soft = False
+        self.cards: list[Card] = []
+        self.soft: bool = False
 
     def value(self) -> int:
         '''
@@ -112,11 +112,11 @@ class Dealer:
     '''
 
     def __init__(self, num_shoe_decks, shoe_cut_card_position):
-        self.hand = Hand()
-        self.shoe = []
-        self.discard = []
-        self.shoe_cut_card_position = shoe_cut_card_position
-        self.drew_cut_card = False
+        self.hand: Hand = Hand()
+        self.shoe: list[Hand] = []
+        self.discard: list[Hand] = []
+        self.shoe_cut_card_position: int = shoe_cut_card_position
+        self.drew_cut_card: bool = False
 
         # Fill shoe and shuffle
         for _ in range(num_shoe_decks):
