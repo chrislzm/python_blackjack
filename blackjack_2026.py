@@ -202,7 +202,7 @@ def setup_players(num_players: int, starting_bank: int) -> list[Player]:
     for player_num in range(1, num_players+1):
         while True:
             player_name = input(f"Player {player_num} - "
-                                f"Please enter your name: ")
+                                "Please enter your name: ")
             if len(player_name) > 0:
                 break
         players.append(Player(player_num, player_name, starting_bank))
@@ -268,12 +268,12 @@ def print_game_rules() -> None:
     '''
     print_header("HOUSE RULES")
     print(f"All players start with {PLAYER_STARTING_BANK}.\n"
-          f"Dealer must hit on soft 17.\n"
+          "Dealer must hit on soft 17.\n"
           f"Shoe contains {NUM_SHOE_DECKS} decks.\n"
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
           "remain in the shoe.\n"
           f"Minimum bet is ${MINIMUM_BET}.\n"
-          f"Blackjack pays 3:2.")
+          "Blackjack pays 3:2.")
 
 
 def print_final_stats(players: list[Player],
@@ -326,8 +326,8 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                     player.hand.cards.append(dealer.deal_one(True))
                     print(player.hand)
                     if player.hand.is_bust():
-                        print("Bust! You lost your bet of "
-                              f"${player.bet}.")
+                        print(f"Bust! You lost your bet of ${player.bet} and "
+                              f"have ${player.bank} remaining.")
                         player.bet = 0
                         stay = True
                     elif player.hand.value() == 21:
