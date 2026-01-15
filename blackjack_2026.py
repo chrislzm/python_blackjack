@@ -111,10 +111,10 @@ class Dealer:
     Represents a dealer in a game of Blackjack.
     '''
 
-    def __init__(self, num_shoe_decks, shoe_cut_card_position):
+    def __init__(self, num_shoe_decks: int, shoe_cut_card_position: int):
         self.hand: Hand = Hand()
-        self.shoe: list[Hand] = []
-        self.discard: list[Hand] = []
+        self.shoe: list[Card] = []
+        self.discard: list[Card] = []
         self.shoe_cut_card_position: int = shoe_cut_card_position
         self.drew_cut_card: bool = False
 
