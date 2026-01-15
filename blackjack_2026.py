@@ -382,18 +382,12 @@ def remove_bankrupt_players(players: list[Player], minimum_bet: int):
     '''
     Remove players from the player list who cannot meet the minimum bet.
     '''
-    bankrupt_players = []
-    for player in players:
+    for player in players[:]:
         if player.bank < minimum_bet:
-            bankrupt_players.append(player.number)
-            print(f"{player} only has ${player.bank} which is less than "
-                  f"the minimum bet of ${minimum_bet}. They are being "
-                  f"removed from the table.")
-    while len(bankrupt_players) != 0:
-        # Remove players moving backwards, with 0-based index, since removing
-        # them in forwards order would change the order
-        players.pop(bankrupt_players[-1]-1)
-        bankrupt_players.pop(-1)
+            players.remove(player)
+            print(f"{player} only has ${player.bank} which is less than the "
+                  f"minimum bet of ${minimum_bet}. They are removed from the "
+                  "table.")
 
 
 def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
@@ -447,7 +441,7 @@ def main():
 
     num_players = get_num_players()
     active_players = setup_players(num_players, PLAYER_STARTING_BANK)
-    all_players = active_players.copy()
+    all_players = active_players[:]
 
     dealer = Dealer(NUM_SHOE_DECKS, SHOE_CUT_CARD_POSITION)
 
