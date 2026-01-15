@@ -9,6 +9,7 @@ Future improvements:
 
 '''
 
+import os
 import random
 from dataclasses import dataclass, field
 
@@ -135,6 +136,7 @@ class Dealer:
             # Special case: Put discard into shoe, shuffle, then deal
             self.shoe.extend(self.discard)
             random.shuffle(self.shoe)
+            self.discard.clear()
         dealt_card = self.shoe.pop()
         dealt_card.face_up = face_up
         return dealt_card
@@ -172,13 +174,6 @@ class Player:
 
     def __str__(self):
         return f"Player {self.number} ({self.name})"
-
-
-def clear_screen() -> None:
-    '''
-    Clears the display to a blank screen.
-    '''
-    print('\n'*100)
 
 
 def get_num_players() -> int:
@@ -312,7 +307,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                               f"${player.bet}.")
                         player.bet = 0
                         stay = True
-                    if player.hand.value() == 21:
+                    elif player.hand.value() == 21:
                         print(player.hand)
                         print("Twenty one!")
                         stay = True
@@ -376,7 +371,7 @@ def discard_cards(players: list[Player], dealer: Dealer) -> None:
             dealer.discard.append(player.hand.cards.pop())
 
 
-def remove_bankrupt_players(players: list[Player], minimum_bet: int):
+def remove_bankrupt_players(players: list[Player], minimum_bet: int) -> None:
     '''
     Remove players from the player list who cannot meet the minimum bet.
     '''
@@ -434,7 +429,7 @@ def main():
     '''
     The Blackjack game.
     '''
-    clear_screen()
+    os.system('cls' if os.name == 'nt' else 'clear')  # Clear screen
     print_header("Welcome to Blackjack!")
 
     num_players = get_num_players()
