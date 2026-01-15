@@ -4,6 +4,8 @@ Author: Chris Leung
 January 9, 2026
 
 Future improvements:
+* Refactor into MVC implementation to separate game state from UI and logic
+* Use enums for suits/ranks
 * Support dollar amounts < $1
 * Expand unit test coverage
 
