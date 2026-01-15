@@ -280,22 +280,30 @@ def print_final_stats(players: list[Player],
               f"{won_or_lost} ${abs(player_starting_bank-player.bank)}")
 
 
-def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
+def payout_any_player_blackjacks(players: list[Player]) -> None:
     '''
-    Plays each player's hand -- requesting hit/stay and handles busts. Also
-    handles blackjack as a special case, immediately awarding their bet 3:2
-    (just like in the casinos!).
+    Announces and immediately pays out any blackjacks, just like in a real
+    casino!
     '''
     for player in players:
-        print_header(f"{player}")
         if player.hand.is_blackjack():
+            print_header(player)
             print(f"Hand: {player.hand} - Blackjack! ")
             win_amount = player.bet * 3 // 2
             player.bank += win_amount + player.bet
             player.bet = 0
             print(f"You win ${win_amount} and now have "
                   f"${player.bank}")
-        else:
+
+
+def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
+    '''
+    Plays each player's hand (for players with an active bet, e.g. > 0),
+    requesting hit/stay. Automatically handles busts and 21s.
+    '''
+    for player in players:
+        if player.bet > 0:
+            print_header(player)
             stay = False
             while not stay:
                 print(player.hand)
@@ -450,6 +458,7 @@ def main():
         if dealer.hand.is_blackjack():
             dealer.reveal_blackjack()
         else:
+            payout_any_player_blackjacks(active_players)
             play_player_rounds(active_players, dealer)
             play_dealer_round(dealer)
 
