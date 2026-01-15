@@ -372,11 +372,11 @@ def discard_cards(players: list[Player], dealer: Dealer) -> None:
     Moves cards from dealer and player hands to the discard pile. Used at the
     end of a round.
     '''
-    while len(dealer.hand.cards) != 0:
-        dealer.discard.append(dealer.hand.cards.pop())
+    dealer.discard.extend(dealer.hand.cards)
+    dealer.hand.cards.clear()
     for player in players:
-        while len(player.hand.cards) != 0:
-            dealer.discard.append(player.hand.cards.pop())
+        dealer.discard.extend(player.hand.cards)
+        player.hand.cards.clear()
 
 
 def remove_bankrupt_players(players: list[Player], minimum_bet: int) -> None:
