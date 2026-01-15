@@ -126,7 +126,7 @@ class Dealer:
             self.shoe.extend(deck.cards)
         random.shuffle(self.shoe)
 
-    def deal_one(self, face_up=False) -> Card:
+    def deal_one(self, face_up: bool = False) -> Card:
         '''
         Deals one card from the shoe and returns it. Tracks whether the shoe
         should be reshuffled using the attributes 'shoe_cut_card_position' and
