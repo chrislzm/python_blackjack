@@ -235,18 +235,23 @@ def get_player_bets(players: list[Player], minimum_bet: int) -> None:
                     print(f"Bet must be at least ${minimum_bet}.")
 
 
-def hit() -> bool:
+def hit_stay_or_dd(offer_double_down: bool) -> str:
     '''
-    Requests that a player either hit or stay. Returns True for hit,
-    False for stay.
+    Requests that a user hit, stay or double down (if offer_double_down ==
+    True).
     '''
-    while True:
-        response = input("Hit or Stay? (h/s): ")
-        if response.lower() == 'h':
-            return True
-        if response.lower() == 's':
-            return False
-        print("Please enter 'h' or 's'.")
+    if offer_double_down:
+        while True:
+            response = input("Hit, Stay, or Double Down? (h/s/d): ").lower()
+            if response in ('h', 's', 'd'):
+                return response
+            print("Please enter 'h', 's' or 'd''.")
+    else:
+        while True:
+            response = input("Hit or Stay? (h/s): ").lower()
+            if response in ('h', 's'):
+                return response
+            print("Please enter 'h' or 's'.")
 
 
 def print_header(message: str) -> None:
@@ -307,22 +312,30 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
         if player.bet > 0:
             print_header(player)
             stay = False
+            first_turn = True
+            print(player.hand)
             while not stay:
-                print(player.hand)
-                if hit():
+                offer_double_down = first_turn and player.bank >= player.bet
+                response = hit_stay_or_dd(offer_double_down)
+                if response == 'd':
+                    player.bank -= player.bet
+                    player.bet *= 2
+                    print(f"Doubling down: Increasing bet to ${player.bet}")
+                    stay = True
+                if response in ('h', 'd'):
                     player.hand.cards.append(dealer.deal_one(True))
+                    print(player.hand)
                     if player.hand.is_bust():
-                        print(player.hand)
                         print("Bust! You lost your bet of "
                               f"${player.bet}.")
                         player.bet = 0
                         stay = True
                     elif player.hand.value() == 21:
-                        print(player.hand)
                         print("Twenty one!")
                         stay = True
                 else:
                     stay = True
+                first_turn = False
 
 
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
