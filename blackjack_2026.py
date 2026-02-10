@@ -43,6 +43,9 @@ class Card:
             return f"[{self.rank}{CARD_SUIT_SYMBOLS[self.suit]}]"
         return "[  ]"
 
+    def value(self) -> int:
+        return CARD_RANK_VALUES[self.rank]
+
 
 @dataclass
 class Deck:
@@ -64,6 +67,7 @@ class Hand:
     '''
 
     def __init__(self):
+        self.bet: int = 0
         self.cards: list[Card] = []
         self.soft: bool = False
 
@@ -78,7 +82,7 @@ class Hand:
         for card in self.cards:
             if card.rank == 'A':
                 num_aces += 1
-            total_value += CARD_RANK_VALUES[card.rank]
+            total_value += card.value()
         self.soft = False
         for _ in range(num_aces):
             if total_value + 10 <= 21:
@@ -171,8 +175,7 @@ class Player:
     number: int
     name: str
     bank: int
-    bet: int = field(init=False, default=0)
-    hand: Hand = field(init=False, default_factory=Hand)
+    hands: list[Card] = field(default_factory=list)
 
     def __str__(self):
         return f"Player {self.number} ({self.name})"
@@ -212,7 +215,7 @@ def setup_players(num_players: int, starting_bank: int) -> list[Player]:
 
 def get_player_bets(players: list[Player], minimum_bet: int) -> None:
     '''
-    Requests a bet for each player.
+    Requests the initial bet for each player.
     '''
     print_header("Place your bets!")
     for player in players:
@@ -227,7 +230,9 @@ def get_player_bets(players: list[Player], minimum_bet: int) -> None:
                     if bet > player.bank:
                         print("Sorry, that's more than you have in your bank.")
                     else:
-                        player.bet = bet
+                        initial_hand = Hand()
+                        initial_hand.bet = bet
+                        player.hands.append(initial_hand)
                         player.bank -= bet
                         print(f"{player.name} bets ${bet}")
                         placed_bet = True
@@ -235,12 +240,18 @@ def get_player_bets(players: list[Player], minimum_bet: int) -> None:
                     print(f"Bet must be at least ${minimum_bet}.")
 
 
-def hit_stay_or_dd(offer_double_down: bool) -> str:
+def hit_stay_split_or_dd(offer_double_down: bool, offer_split: bool) -> str:
     '''
-    Requests that a user hit, stay or double down (if offer_double_down ==
-    True).
+    Requests that a user hit, stay, split or double down and performs input
+    validation until a valid input is received.
     '''
-    if offer_double_down:
+    if offer_split:
+        while True:
+            response = input("Hit, Stay, Split, or Double Down? (h/s/p/d): ").lower()
+            if response in ('h', 's', 'p', 'd'):
+                return response
+            print("Please enter 'h', 's', 'p' or 'd'.")
+    elif offer_double_down:
         while True:
             response = input("Hit, Stay, or Double Down? (h/s/d): ").lower()
             if response in ('h', 's', 'd'):
@@ -293,12 +304,13 @@ def payout_any_player_blackjacks(players: list[Player]) -> None:
     casino!
     '''
     for player in players:
-        if player.hand.is_blackjack():
+        hand = player.hands[0]  # Only one hand at this time
+        if hand.is_blackjack():
             print_header(player)
-            print(f"Hand: {player.hand} - Blackjack! ")
-            win_amount = player.bet * 3 // 2
-            player.bank += win_amount + player.bet
-            player.bet = 0
+            print(f"Hand: {hand} - Blackjack! ")
+            win_amount = hand.bet * 3 // 2
+            player.bank += win_amount + hand.bet
+            hand.bet = 0
             print(f"You win ${win_amount} and now have "
                   f"${player.bank}")
 
@@ -309,33 +321,65 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
     requesting hit/stay. Automatically handles busts and 21s.
     '''
     for player in players:
-        if player.bet > 0:
+        initial_bet = player.hands[0].bet
+        if initial_bet > 0:
             print_header(player)
-            stay = False
-            first_turn = True
-            print(player.hand)
-            while not stay:
-                offer_double_down = first_turn and player.bank >= player.bet
-                response = hit_stay_or_dd(offer_double_down)
-                if response == 'd':
-                    player.bank -= player.bet
-                    player.bet *= 2
-                    print(f"Doubling down: Increasing bet to ${player.bet}")
-                    stay = True
-                if response in ('h', 'd'):
-                    player.hand.cards.append(dealer.deal_one(True))
-                    print(player.hand)
-                    if player.hand.is_bust():
-                        print(f"Bust! You lost your bet of ${player.bet} and "
-                              f"have ${player.bank} remaining.")
-                        player.bet = 0
+            num_hands = 1
+            current_hand = 0
+            while current_hand < num_hands:
+                stay = False
+                first_turn = True
+                hand = player.hands[current_hand]
+                print(hand)
+                while not stay:
+                    offer_double_down = (first_turn and
+                                         player.bank >= hand.bet)
+                    offer_split = ((len(hand.cards) == 2) and
+                                   (hand.cards[0].value() ==
+                                    hand.cards[1].value()) and
+                                   (player.bank - hand.bet >= 0))
+
+                    # Automatically hit if we are splitting
+                    if len(hand.cards) == 1:
+                        response = 'ignore'
+                    else:
+                        response = hit_stay_split_or_dd(offer_double_down, offer_split)
+
+                    if response == 's':  # Stay
                         stay = True
-                    elif player.hand.value() == 21:
+                        continue
+
+                    # Any other response means we deal a card to the hand
+                    if response == 'd':  # Double down
+                        player.bank -= hand.bet
+                        hand.bet *= 2
+                        print(f"Doubling down: Increasing bet to ${hand.bet}")
+                        stay = True
+
+                    if response == 'p':  # Split
+                        split_hand = Hand()
+                        split_hand.cards.append(hand.cards.pop())
+                        split_hand.bet = hand.bet
+                        player.bank -= hand.bet
+                        player.hands.append(split_hand)
+                        num_hands += 1
+
+                    # Deal the card and hande the outcome
+                    hand.cards.append(dealer.deal_one(True))
+                    print(hand)
+                    if hand.is_bust():
+                        print(f"Bust! You lost your bet of ${hand.bet} and "
+                              f"have ${player.bank} remaining.")
+                        hand.bet = 0
+                        stay = True
+                    elif hand.value() == 21:
                         print("Twenty one!")
                         stay = True
-                else:
-                    stay = True
-                first_turn = False
+
+                    if response in ('h', 'd'):  # Hit or double down
+                        first_turn = False  # Leave True when we are splitting
+
+                current_hand += 1
 
 
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
@@ -345,24 +389,22 @@ def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
     '''
     print_header("Resolving bets")
     for player in players:
-        if player.bet == 0:
-            continue
-        if (dealer.hand.is_bust() or
-                player.hand.value() > dealer.hand.value()):
-            player.bank += player.bet * 2
-            print(f"{player} hand {player.hand} wins ${player.bet} "
-                  f"and now has ${player.bank}")
-            player.bet = 0
-        elif dealer.hand.value() == player.hand.value():
-            player.bank += player.bet
-            print(f"{player} hand {player.hand} is a push, ${player.bet} "
-                  f"is returned and they now have ${player.bank}.")
-            player.bet = 0
-        elif dealer.hand.value() > player.hand.value():
-            print(f"{player} hand {player.hand} loses to dealer's hand and "
-                  f"they lose their ${player.bet} bet. "
-                  f"They now have ${player.bank}.")
-            player.bet = 0
+        for hand in player.hands:
+            if hand.bet == 0:
+                continue
+            if (dealer.hand.is_bust() or
+                    hand.value() > dealer.hand.value()):
+                player.bank += hand.bet * 2
+                print(f"{player} hand {hand} wins ${hand.bet} "
+                      f"and now has ${player.bank}")
+            elif dealer.hand.value() == hand.value():
+                player.bank += hand.bet
+                print(f"{player} hand {hand} is a push, ${hand.bet} "
+                      f"is returned and they now have ${player.bank}.")
+            elif dealer.hand.value() > hand.value():
+                print(f"{player} hand {hand} loses to dealer's hand and "
+                      f"they lose their ${hand.bet} bet. "
+                      f"They now have ${player.bank}.")
 
 
 def play_dealer_round(dealer: Dealer) -> None:
@@ -390,8 +432,10 @@ def discard_cards(players: list[Player], dealer: Dealer) -> None:
     dealer.discard.extend(dealer.hand.cards)
     dealer.hand.cards.clear()
     for player in players:
-        dealer.discard.extend(player.hand.cards)
-        player.hand.cards.clear()
+        for hand in player.hands:
+            dealer.discard.extend(hand.cards)
+            player.hands.clear()
+
 
 
 def remove_bankrupt_players(players: list[Player], minimum_bet: int) -> None:
@@ -417,17 +461,17 @@ def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
     # Deal first card
     dealer.hand.cards.append(dealer.deal_one(False))
     for player in players:
-        player.hand.cards.append(dealer.deal_one(True))
+        player.hands[0].cards.append(dealer.deal_one(True))
 
     # Deal second card
     dealer.hand.cards.append(dealer.deal_one(True))
     for player in players:
-        player.hand.cards.append(dealer.deal_one(True))
+        player.hands[0].cards.append(dealer.deal_one(True))
 
     # Announce cards
     print(f"Dealer shows: {dealer.hand}")
     for player in players:
-        print(f"{player} shows: {player.hand}")
+        print(f"{player} shows: {player.hands[0]}")
 
 
 def should_game_on(players: list[Player]) -> bool:
