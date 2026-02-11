@@ -316,7 +316,8 @@ def payout_any_player_blackjacks(players: list[Player]) -> None:
                   f"${player.bank}")
 
 
-def print_hand(hand: Hand,
+def print_hand(player_name: str,
+               hand: Hand,
                num_hands: int,
                current_hand_index: int) -> None:
     '''
@@ -324,9 +325,9 @@ def print_hand(hand: Hand,
     multiple hands (due to a split), otherwise just print the hand.
     '''
     if num_hands == 1:
-        print(hand)
+        print(f"{player_name}: {hand}")
     else:
-        print(f"Hand {current_hand_index+1}: {hand}")
+        print(f"{player_name} Hand {current_hand_index+1}: {hand}")
 
 
 def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
@@ -340,11 +341,12 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
             print_header(player)
             num_hands = 1
             current_hand_index = 0
+            print(f"Dealer: {dealer.hand}")
             while current_hand_index < num_hands:
                 stay = False
                 first_turn = True
                 hand = player.hands[current_hand_index]
-                print_hand(hand, num_hands, current_hand_index)
+                print_hand(player.name, hand, num_hands, current_hand_index)
                 while not stay:
                     offer_double_down = (first_turn and
                                          player.bank >= hand.bet)
@@ -357,8 +359,8 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                     if len(hand.cards) == 1:
                         response = 'ignore'
                     else:
-                        response = hit_stay_split_or_dd(
-                            offer_double_down, offer_split)
+                        response = hit_stay_split_or_dd(offer_double_down,
+                                                        offer_split)
 
                     if response == 's':  # Stay
                         stay = True
@@ -379,11 +381,17 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         player.bank -= hand.bet
                         player.hands.append(split_hand)
                         num_hands += 1
-                        print_hand(hand, num_hands, current_hand_index)
+                        print_hand(player.name,
+                                   hand,
+                                   num_hands,
+                                   current_hand_index)
 
                     # Hit and hande the outcome
                     hand.cards.append(dealer.deal_one(True))
-                    print_hand(hand, num_hands, current_hand_index)
+                    print_hand(player.name,
+                               hand,
+                               num_hands,
+                               current_hand_index)
                     if hand.is_bust():
                         print(f"Bust! You lost your bet of ${hand.bet} and "
                               f"have ${player.bank} remaining.")
