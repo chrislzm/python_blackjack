@@ -175,7 +175,7 @@ class Player:
     number: int
     name: str
     bank: int
-    hands: list[Card] = field(default_factory=list)
+    hands: list[Hand] = field(default_factory=list)
 
     def __str__(self):
         return f"Player {self.number} ({self.name})"
@@ -386,7 +386,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                                    num_hands,
                                    current_hand_index)
 
-                    # Hit and hande the outcome
+                    # Hit and handle the outcome
                     hand.cards.append(dealer.deal_one(True))
                     print_hand(player.name,
                                hand,
