@@ -25,6 +25,7 @@ PLAYER_STARTING_BANK = 500
 MINIMUM_BET = 15
 NUM_SHOE_DECKS = 6
 SHOE_CUT_CARD_POSITION = 52  # Reshuffle when one deck remains in the shoe
+MAX_SPLITS = 4
 SCREEN_WIDTH = 80
 
 
@@ -285,6 +286,7 @@ def print_game_rules() -> None:
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
           "remain in the shoe.\n"
           f"Minimum bet is ${MINIMUM_BET}.\n"
+          f"Maximum times a player can split their hand is {MAX_SPLITS} times."
           "Blackjack pays 3:2.")
 
 
@@ -350,10 +352,11 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                 while not stay:
                     offer_double_down = (first_turn and
                                          player.bank >= hand.bet)
-                    offer_split = ((len(hand.cards) == 2) and
+                    offer_split = (len(hand.cards) == 2 and
                                    (hand.cards[0].value() ==
                                     hand.cards[1].value()) and
-                                   (player.bank >= hand.bet))
+                                   player.bank >= hand.bet and
+                                   num_hands < MAX_SPLITS)
 
                     # Automatically hit if we have split
                     if len(hand.cards) == 1:
@@ -406,7 +409,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         # option to double down
                         first_turn = False
 
-                    if (response == 'auto_hit_split'
+                    if ((response == 'p' or response == 'auto_hit_split')
                             and hand.cards[0].rank == 'A'):
                         # Split aces are only allowed one card
                         stay = True
