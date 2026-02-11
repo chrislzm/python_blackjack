@@ -247,7 +247,8 @@ def hit_stay_split_or_dd(offer_double_down: bool, offer_split: bool) -> str:
     '''
     if offer_split:
         while True:
-            response = input("Hit, Stay, Split, or Double Down? (h/s/p/d): ").lower()
+            response = input(
+                "Hit, Stay, Split, or Double Down? (h/s/p/d): ").lower()
             if response in ('h', 's', 'p', 'd'):
                 return response
             print("Please enter 'h', 's', 'p' or 'd'.")
@@ -304,15 +305,28 @@ def payout_any_player_blackjacks(players: list[Player]) -> None:
     casino!
     '''
     for player in players:
-        hand = player.hands[0]  # Only one hand at this time
-        if hand.is_blackjack():
+        initial_hand = player.hands[0]
+        if initial_hand.is_blackjack():
             print_header(player)
-            print(f"Hand: {hand} - Blackjack! ")
-            win_amount = hand.bet * 3 // 2
-            player.bank += win_amount + hand.bet
-            hand.bet = 0
+            print(f"Hand: {initial_hand} - Blackjack! ")
+            win_amount = initial_hand.bet * 3 // 2
+            player.bank += win_amount + initial_hand.bet
+            initial_hand.bet = 0
             print(f"You win ${win_amount} and now have "
                   f"${player.bank}")
+
+
+def print_hand(hand: Hand,
+               num_hands: int,
+               current_hand_index: int) -> None:
+    '''
+    Helper function to print the hand -- includes hand number only if there are
+    multiple hands (due to a split), otherwise just print the hand.
+    '''
+    if num_hands == 1:
+        print(hand)
+    else:
+        print(f"Hand {current_hand_index+1}: {hand}")
 
 
 def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
@@ -325,31 +339,33 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
         if initial_bet > 0:
             print_header(player)
             num_hands = 1
-            current_hand = 0
-            while current_hand < num_hands:
+            current_hand_index = 0
+            while current_hand_index < num_hands:
                 stay = False
                 first_turn = True
-                hand = player.hands[current_hand]
-                print(hand)
+                hand = player.hands[current_hand_index]
+                print_hand(hand, num_hands, current_hand_index)
                 while not stay:
                     offer_double_down = (first_turn and
                                          player.bank >= hand.bet)
                     offer_split = ((len(hand.cards) == 2) and
                                    (hand.cards[0].value() ==
                                     hand.cards[1].value()) and
-                                   (player.bank - hand.bet >= 0))
+                                   (player.bank >= hand.bet))
 
-                    # Automatically hit if we are splitting
+                    # Automatically hit if we have split
                     if len(hand.cards) == 1:
                         response = 'ignore'
                     else:
-                        response = hit_stay_split_or_dd(offer_double_down, offer_split)
+                        response = hit_stay_split_or_dd(
+                            offer_double_down, offer_split)
 
                     if response == 's':  # Stay
                         stay = True
                         continue
 
-                    # Any other response means we deal a card to the hand
+                    # Any other response means we deal one card to the hand
+
                     if response == 'd':  # Double down
                         player.bank -= hand.bet
                         hand.bet *= 2
@@ -363,10 +379,11 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         player.bank -= hand.bet
                         player.hands.append(split_hand)
                         num_hands += 1
+                        print_hand(hand, num_hands, current_hand_index)
 
-                    # Deal the card and hande the outcome
+                    # Hit and hande the outcome
                     hand.cards.append(dealer.deal_one(True))
-                    print(hand)
+                    print_hand(hand, num_hands, current_hand_index)
                     if hand.is_bust():
                         print(f"Bust! You lost your bet of ${hand.bet} and "
                               f"have ${player.bank} remaining.")
@@ -377,9 +394,11 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         stay = True
 
                     if response in ('h', 'd'):  # Hit or double down
-                        first_turn = False  # Leave True when we are splitting
+                        # Leave True when we are splitting so they have the
+                        # option to double down
+                        first_turn = False
 
-                current_hand += 1
+                current_hand_index += 1
 
 
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
@@ -435,7 +454,6 @@ def discard_cards(players: list[Player], dealer: Dealer) -> None:
         for hand in player.hands:
             dealer.discard.extend(hand.cards)
             player.hands.clear()
-
 
 
 def remove_bankrupt_players(players: list[Player], minimum_bet: int) -> None:
