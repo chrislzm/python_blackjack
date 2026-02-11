@@ -357,7 +357,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
 
                     # Automatically hit if we have split
                     if len(hand.cards) == 1:
-                        response = 'ignore'
+                        response = 'auto_hit_split'
                     else:
                         response = hit_stay_split_or_dd(offer_double_down,
                                                         offer_split)
@@ -405,6 +405,11 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         # Leave True when we are splitting so they have the
                         # option to double down
                         first_turn = False
+
+                    if (response == 'auto_hit_split'
+                            and hand.cards[0].rank == 'A'):
+                        # Split aces are only allowed one card
+                        stay = True
 
                 current_hand_index += 1
 
