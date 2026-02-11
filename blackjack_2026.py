@@ -461,7 +461,7 @@ def discard_cards(players: list[Player], dealer: Dealer) -> None:
     for player in players:
         for hand in player.hands:
             dealer.discard.extend(hand.cards)
-            player.hands.clear()
+        player.hands.clear()
 
 
 def remove_bankrupt_players(players: list[Player], minimum_bet: int) -> None:
