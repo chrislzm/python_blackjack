@@ -1,7 +1,6 @@
 '''
 Blackjack: Milestone 2 Project for "The Complete Python Bootcamp"
 Author: Chris Leung
-January 9, 2026
 
 Future improvements:
 * Refactor into MVC implementation to separate game state from UI and logic
@@ -435,7 +434,7 @@ def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
     print_header("Resolving bets")
     for player in players:
         for hand in player.hands:
-            if hand.bet == 0:
+            if hand.is_bust() or hand.bet == 0:
                 continue
             if (dealer.hand.is_bust() or
                     hand.value() > dealer.hand.value()):
