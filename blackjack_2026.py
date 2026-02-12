@@ -45,6 +45,10 @@ class Card:
         return "[  ]"
 
     def value(self) -> int:
+        '''
+        Returns the numberic value of the Blackjack card based on the
+        CARD_RANK_VALUES dictionary.
+        '''
         return CARD_RANK_VALUES[self.rank]
 
 
@@ -70,13 +74,13 @@ class Hand:
     def __init__(self):
         self.bet: int = 0
         self.cards: list[Card] = []
-        self.is_soft: bool = False
 
-    def value(self) -> int:
+    def _evaluate(self) -> tuple[int, bool]:
         '''
-        Returns the numeric value of the Blackjack hand, maximizing the value
-        of aces after. Tracks whether the hand is soft or hard using the 'soft'
-        attribute.
+        Evalutes the numeric value of the Blackjack hand (maximizing the value
+        of any aces) and returns a tuple of that value and a boolean that
+        indicates whether the hand is soft (e.g. includes an ace valued at 11)
+        or hard (e.g. any aces are valued at 1).
         '''
         total_value = 0
         num_aces = 0
@@ -84,12 +88,24 @@ class Hand:
             if card.rank == 'A':
                 num_aces += 1
             total_value += card.value()
-        self.is_soft = False
+        is_soft = False
         for _ in range(num_aces):
             if total_value + 10 <= 21:
                 total_value += 10
-                self.is_soft = True
-        return total_value
+                is_soft = True
+        return (total_value, is_soft)
+
+    def value(self) -> int:
+        '''
+        Returns the numeric value of the Blackjack hand
+        '''
+        return self._evaluate()[0]
+
+    def is_soft(self) -> bool:
+        '''
+        Returns a boolean indicating whether the hand is soft.
+        '''
+        return self._evaluate()[1]
 
     def is_bust(self) -> bool:
         '''
@@ -261,7 +277,7 @@ def hit_stay_split_or_dd(offer_double_down: bool, offer_split: bool) -> str:
             print("Please enter 'h' or 's'.")
 
 
-def print_header(message: str) -> None:
+def print_header(message: object) -> None:
     '''
     Prints a message center aligned and padded by dashes. Fills the width of
     the screen defined by the global SCREEN_WIDTH.
@@ -280,7 +296,7 @@ def print_game_rules() -> None:
           f"Shoe is reshuffled when less than {SHOE_CUT_CARD_POSITION} cards "
           "remain in the shoe.\n"
           f"Minimum bet is ${MINIMUM_BET}.\n"
-          f"Maximum times a player can split their hand is {MAX_SPLITS} times."
+          f"Player can split their hand a maximum of {MAX_SPLITS} times.\n"
           "Blackjack pays 3:2.")
 
 
@@ -403,7 +419,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
                         # option to double down
                         first_turn = False
 
-                    if ((response == 'p' or response == 'auto_hit_split')
+                    if (response in ('p', 'auto_hit_split')
                             and hand.cards[0].rank == 'A'):
                         # Split aces are only allowed one card
                         stay = True
@@ -444,7 +460,7 @@ def play_dealer_round(dealer: Dealer) -> None:
     dealer.hand.cards[0].face_up = True
     print(dealer.hand)
     while (dealer.hand.value() < 17 or
-           (dealer.hand.value() == 17 and dealer.hand.is_soft)):
+           (dealer.hand.value() == 17 and dealer.hand.is_soft())):
         print("Dealer hits.")
         dealer.hand.cards.append(dealer.deal_one(True))
         print(dealer.hand)
