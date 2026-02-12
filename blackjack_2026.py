@@ -70,7 +70,7 @@ class Hand:
     def __init__(self):
         self.bet: int = 0
         self.cards: list[Card] = []
-        self.soft: bool = False
+        self.is_soft: bool = False
 
     def value(self) -> int:
         '''
@@ -84,11 +84,11 @@ class Hand:
             if card.rank == 'A':
                 num_aces += 1
             total_value += card.value()
-        self.soft = False
+        self.is_soft = False
         for _ in range(num_aces):
             if total_value + 10 <= 21:
                 total_value += 10
-                self.soft = True
+                self.is_soft = True
         return total_value
 
     def is_bust(self) -> bool:
@@ -102,12 +102,6 @@ class Hand:
         Returns True if the hand is a blackjack.
         '''
         return len(self.cards) == 2 and self.value() == 21
-
-    def is_hard_17(self) -> bool:
-        '''
-        Returns True if the hand is a hard 17.
-        '''
-        return self.value() == 17 and not self.soft
 
     def __str__(self):
         return " ".join(str(card) for card in self.cards)
@@ -449,7 +443,8 @@ def play_dealer_round(dealer: Dealer) -> None:
     print_header("Dealer")
     dealer.hand.cards[0].face_up = True
     print(dealer.hand)
-    while dealer.hand.value() <= 17 and not dealer.hand.is_hard_17():
+    while (dealer.hand.value() < 17 or
+           (dealer.hand.value() == 17 and dealer.hand.is_soft)):
         print("Dealer hits.")
         dealer.hand.cards.append(dealer.deal_one(True))
         print(dealer.hand)
