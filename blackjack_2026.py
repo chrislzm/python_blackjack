@@ -45,8 +45,7 @@ class Card:
 
     def value(self) -> int:
         '''
-        Returns the numberic value of the Blackjack card based on the
-        CARD_RANK_VALUES dictionary.
+        Returns the numberic value of the Blackjack card
         '''
         return CARD_RANK_VALUES[self.rank]
 
@@ -76,7 +75,7 @@ class Hand:
 
     def _evaluate(self) -> tuple[int, bool]:
         '''
-        Evalutes the numeric value of the Blackjack hand (maximizing the value
+        Evaluates the numeric value of the Blackjack hand (maximizing the value
         of any aces) and returns a tuple of that value and a boolean that
         indicates whether the hand is soft (e.g. includes an ace valued at 11)
         or hard (e.g. any aces are valued at 1).
@@ -429,7 +428,7 @@ def play_player_rounds(players: list[Player], dealer: Dealer) -> None:
 def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
     '''
     Resolves each player's bet by evaluating their hand against the dealer's
-    hand and taking the appropriate action regarding their bet.
+    hand and taking the appropriate action.
     '''
     print_header("Resolving bets")
     for player in players:
@@ -453,7 +452,7 @@ def resolve_player_bets(players: list[Player], dealer: Dealer) -> None:
 
 def play_dealer_round(dealer: Dealer) -> None:
     '''
-    Plays the dealer's hand.
+    Plays the dealer's hand (stands on 17, must hit on soft 17 or less)
     '''
     print_header("Dealer")
     dealer.hand.cards[0].face_up = True
@@ -520,8 +519,8 @@ def deal_first_two_cards(players: list[Player], dealer: Dealer) -> None:
 
 def should_game_on(players: list[Player]) -> bool:
     '''
-    Decides whether the game should continue and returns True (continue) or
-    False (end game).
+    Decides whether the game should continue, returns True (to continue) or
+    False (to end game).
     '''
     if len(players) == 0:
         print("There are no more eligible players.")
